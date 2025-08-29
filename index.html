@@ -9,7 +9,9 @@
   <style>
     body { font-family: 'Inter', sans-serif; }
     #video, #canvas, #photoPreview { display: none; }
-    #video.active, #canvas.active, #photoPreview.active { display: block; }
+    .photo-item { position: relative; width: 80px; height: 80px; margin: 4px; }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+    .photo-item button { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; width: 20px; height: 20px; border-radius: 50%; border: 0; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -52,6 +54,7 @@
           </div>
           <input id="tel" placeholder="Téléphone" class="w-full p-2 border border-gray-300 rounded" />
           <input id="emailProspect" placeholder="E-mail" class="w-full p-2 border border-gray-300 rounded" />
+          <textarea id="commentaire" placeholder="Commentaire" class="w-full p-2 border border-gray-300 rounded" rows="2"></textarea>
         </div>
 
         <!-- Localisation -->
@@ -59,14 +62,15 @@
           📍 Localiser automatiquement
         </button>
 
-        <!-- Photo -->
+        <!-- Photos -->
         <div class="mt-4">
-          <p class="text-sm font-medium mb-2">Photo du prospect (obligatoire)</p>
+          <p class="text-sm font-medium mb-2">Photos (facultatives)</p>
           <video id="video" autoplay class="w-full h-48 bg-black rounded-lg mb-2"></video>
           <canvas id="canvas" class="w-full h-48 bg-black rounded-lg mb-2"></canvas>
-          <div id="photoPreview" class="w-full h-48 bg-gray-200 rounded-lg mb-2 flex items-center justify-center">
-            <img id="photoImg" class="h-full w-full object-cover rounded-lg" />
-          </div>
+
+          <!-- Miniatures -->
+          <div id="photosPreview" class="flex flex-wrap mb-2"></div>
+
           <button id="takePhotoBtn" class="w-full bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">
             📷 Prendre une photo
           </button>
@@ -77,7 +81,7 @@
 
         <!-- Enregistrer -->
         <button onclick="saveProspect()" class="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold">
-          ✅ Enregistrer le prospect
+          ✅ Enregistrer et envoyer
         </button>
       </div>
 
@@ -92,7 +96,7 @@
 
     <!-- Barre hors ligne -->
     <div id="offlineBar" class="hidden bg-yellow-500 text-white text-center py-2 text-sm">
-      📴 Hors ligne. Les données seront synchronisées dès que vous serez en ligne.
+      📴 Hors ligne. Les données seront envoyées dès que vous serez en ligne.
     </div>
   </div>
 
@@ -110,7 +114,7 @@
 
     let currentUser = null;
     let currentStream = null;
-    let photoDataUrl = null;
+    let currentPhotos = []; // Plusieurs photos
     let offlineQueue = JSON.parse(localStorage.getItem('prospectQueue') || '[]');
 
     // Login
@@ -180,7 +184,7 @@
       }
     }
 
-    // Caméra
+    // Caméra arrière
     async function startCamera() {
       const video = document.getElementById('video');
       const takeBtn = document.getElementById('takePhotoBtn');
@@ -191,7 +195,9 @@
       confirmBtn.classList.remove('hidden');
 
       try {
-        currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        currentStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
         video.srcObject = currentStream;
       } catch (err) {
         alert('Erreur caméra : ' + err.message);
@@ -205,26 +211,43 @@
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
-      photoDataUrl = canvas.toDataURL('image/jpeg');
-
-      document.getElementById('photoImg').src = photoDataUrl;
-      document.getElementById('canvas').classList.add('active');
-      document.getElementById('photoPreview').classList.add('active');
-
+      const photoDataUrl = canvas.toDataURL('image/jpeg');
+      currentPhotos.push(photoDataUrl);
+      updatePhotosPreview();
       video.classList.remove('active');
-      currentStream.getTracks().forEach(track => track.stop());
+      if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+      document.getElementById('takePhotoBtn').style.display = 'block';
+      document.getElementById('confirmPhotoBtn').classList.add('hidden');
     }
 
-    // Sauvegarde
+    function updatePhotosPreview() {
+      const container = document.getElementById('photosPreview');
+      container.innerHTML = '';
+      currentPhotos.forEach((photo, index) => {
+        const div = document.createElement('div');
+        div.className = 'photo-item';
+        div.innerHTML = `
+          <img src="${photo}" />
+          <button onclick="removePhoto(${index})">×</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function removePhoto(index) {
+      currentPhotos.splice(index, 1);
+      updatePhotosPreview();
+    }
+
+    // Sauvegarde et envoi
     function saveProspect() {
       const nom = document.getElementById('nom').value.trim();
-      if (!nom || !photoDataUrl) {
-        alert('Le nom et la photo sont obligatoires.');
+      if (!nom) {
+        alert('Le nom est obligatoire.');
         return;
       }
 
       const prospect = {
-        id: Date.now().toString(),
         nom,
         societe: document.getElementById('societe').value,
         adresse: document.getElementById('adresse').value,
@@ -232,50 +255,68 @@
         ville: document.getElementById('ville').value,
         tel: document.getElementById('tel').value,
         email: document.getElementById('emailProspect').value,
-        photo: photoDataUrl,
-        userId: currentUser.email,
+        commentaire: document.getElementById('commentaire').value,
+        photos: currentPhotos,
         userName: currentUser.email.split('@')[0],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toLocaleString()
       };
+
+      // Envoi par e-mail
+      sendByEmail(prospect);
 
       // Sauvegarde locale
       const all = JSON.parse(localStorage.getItem('prospects') || '[]');
       all.push(prospect);
       localStorage.setItem('prospects', JSON.stringify(all));
 
-      // Envoi ou file
+      resetForm();
+      loadProspects();
+      showToast('✅ Prospect envoyé !');
+    }
+
+    function sendByEmail(prospect) {
+      const dest = 'admin@entreprise.com, contact@entreprise.com'; // Ajoute autant d'e-mails que tu veux
+      const sujet = encodeURIComponent(`Nouveau prospect : ${prospect.nom}`);
+      let body = `
+Nom: ${prospect.nom}
+Société: ${prospect.société}
+Adresse: ${prospect.adresse}, ${prospect.cp} ${prospect.ville}
+Téléphone: ${prospect.tel}
+E-mail: ${prospect.email}
+Commentaire: ${prospect.commentaire}
+Saisi par: ${prospect.userName}
+Date: ${prospect.timestamp}
+      `;
+
+      // Sur Android/iOS, on ne peut pas joindre des images en base64 dans un mail
+      // Mais on peut indiquer qu'il y a des photos
+      if (prospect.photos.length > 0) {
+        body += `\n\n➡️ ${prospect.photos.length} photo(s) prise(s) (voir dans l'app ou sur le téléphone).`;
+      }
+
+      const mailto = `mailto:${dest}?subject=${sujet}&body=${encodeURIComponent(body)}`;
       if (navigator.onLine) {
-        sendEmailNotification(prospect);
+        window.location.href = mailto;
       } else {
         offlineQueue.push(prospect);
         localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
         showToast('Sauvegardé hors ligne');
       }
-
-      resetForm();
-      loadProspects();
-      showToast('✅ Prospect enregistré !');
     }
 
-    function sendEmailNotification(p) {
-      console.log(`📧 Envoi d'email aux admins pour ${p.nom} (${p.societe})`);
-    }
-
-    async function syncOfflineData() {
+    function syncOfflineData() {
       if (!navigator.onLine || offlineQueue.length === 0) return;
       const queue = [...offlineQueue];
       offlineQueue = [];
       localStorage.setItem('prospectQueue', '[]');
-      
       queue.forEach(p => {
         const all = JSON.parse(localStorage.getItem('prospects') || '[]');
-        if (!all.find(x => x.id === p.id)) all.push(p);
+        all.push(p);
         localStorage.setItem('prospects', JSON.stringify(all));
-        sendEmailNotification(p);
+        sendByEmail(p);
       });
-
       loadProspects();
-      showToast('✅ Données hors ligne synchronisées');
+      showToast('✅ Données hors ligne envoyées');
     }
 
     function loadProspects() {
@@ -290,8 +331,11 @@
           <p class="font-medium">${p.nom} - <span class="text-blue-600">${p.societe}</span></p>
           <p class="text-sm text-gray-600">${p.adresse}, ${p.cp} ${p.ville}</p>
           <p class="text-sm">${p.tel} | ${p.email}</p>
-          <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${new Date(p.timestamp).toLocaleString()}</p>
-          <img src="${p.photo}" class="h-20 w-20 object-cover mt-2 rounded" />
+          <p class="text-sm">${p.commentaire}</p>
+          <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${p.timestamp}</p>
+          <div class="flex mt-2">
+            ${p.photos ? p.photos.map(img => `<img src="${img}" class="h-20 w-20 object-cover rounded mr-1" />`).join('') : ''}
+          </div>
         `;
         list.appendChild(item);
       });
@@ -305,9 +349,10 @@
       document.getElementById('ville').value = '';
       document.getElementById('tel').value = '';
       document.getElementById('emailProspect').value = '';
-      document.getElementById('canvas').classList.remove('active');
-      document.getElementById('photoPreview').classList.remove('active');
-      photoDataUrl = null;
+      document.getElementById('commentaire').value = '';
+      currentPhotos = [];
+      updatePhotosPreview();
+      document.getElementById('video').classList.remove('active');
       document.getElementById('takePhotoBtn').style.display = 'block';
       document.getElementById('confirmPhotoBtn').classList.add('hidden');
     }
