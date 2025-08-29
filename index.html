@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>App Prospect - Collecte Terrain</title>
+  <title>Prospects - Ouest Palettes</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -18,8 +18,12 @@
 
   <!-- Écran de connexion -->
   <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-      <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">🔐 App Prospect</h1>
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
+      <!-- Logo -->
+      <img src="https://placehold.co/160x50/003366/FFFFFF?text=OUEST+PALETTES" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
+      <!-- Titre de l'app -->
+      <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
+      <!-- Formulaire de login -->
       <input id="email" type="email" placeholder="Email" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
       <input id="password" type="password" placeholder="Mot de passe" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
       <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold">Se connecter</button>
@@ -33,7 +37,7 @@
     <!-- Header -->
     <header class="bg-white shadow-sm p-4">
       <div class="flex justify-between items-center">
-        <h1 class="text-xl font-bold">Prospects Terrain</h1>
+        <h1 class="text-xl font-bold">Prospects</h1>
         <button onclick="logout()" class="text-sm text-red-500">Déconnexion</button>
       </div>
     </header>
@@ -71,11 +75,9 @@
           <!-- Miniatures -->
           <div id="photosPreview" class="flex flex-wrap mb-2"></div>
 
+          <!-- Bouton pour prendre une photo -->
           <button id="takePhotoBtn" class="w-full bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">
             📷 Prendre une photo
-          </button>
-          <button id="confirmPhotoBtn" class="w-full bg-green-600 text-white py-2 rounded text-sm hidden" onclick="confirmPhoto()">
-            ✅ Valider la photo
           </button>
         </div>
 
@@ -106,6 +108,12 @@
   </div>
 
   <script>
+    // ✅ ADRESSES EMAIL FIXES (modifiables ici)
+    const EMAIL_DESTINATAIRES = [
+      'thierry.lutton@gmail.com',
+      'thierry.lutton@ouestpalettes.com'
+    ];
+
     // Utilisateurs
     const users = [
       { email: 'collecteur@prospect.com', password: '1234', role: 'collecteur' },
@@ -188,11 +196,6 @@
     async function startCamera() {
       const video = document.getElementById('video');
       const takeBtn = document.getElementById('takePhotoBtn');
-      const confirmBtn = document.getElementById('confirmPhotoBtn');
-
-      video.classList.add('active');
-      takeBtn.style.display = 'none';
-      confirmBtn.classList.remove('hidden');
 
       try {
         currentStream = await navigator.mediaDevices.getUserMedia({
@@ -201,10 +204,16 @@
         video.srcObject = currentStream;
       } catch (err) {
         alert('Erreur caméra : ' + err.message);
+        return;
       }
+
+      // Capture automatique après 2 secondes
+      setTimeout(() => {
+        capturePhoto();
+      }, 2000);
     }
 
-    function confirmPhoto() {
+    function capturePhoto() {
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
@@ -217,7 +226,6 @@
       video.classList.remove('active');
       if (currentStream) currentStream.getTracks().forEach(track => track.stop());
       document.getElementById('takePhotoBtn').style.display = 'block';
-      document.getElementById('confirmPhotoBtn').classList.add('hidden');
     }
 
     function updatePhotosPreview() {
@@ -275,7 +283,7 @@
     }
 
     function sendByEmail(prospect) {
-      const dest = 'admin@entreprise.com, contact@entreprise.com'; // Ajoute autant d'e-mails que tu veux
+      const dest = EMAIL_DESTINATAIRES.join(',');
       const sujet = encodeURIComponent(`Nouveau prospect : ${prospect.nom}`);
       let body = `
 Nom: ${prospect.nom}
@@ -286,13 +294,9 @@ E-mail: ${prospect.email}
 Commentaire: ${prospect.commentaire}
 Saisi par: ${prospect.userName}
 Date: ${prospect.timestamp}
-      `;
 
-      // Sur Android/iOS, on ne peut pas joindre des images en base64 dans un mail
-      // Mais on peut indiquer qu'il y a des photos
-      if (prospect.photos.length > 0) {
-        body += `\n\n➡️ ${prospect.photos.length} photo(s) prise(s) (voir dans l'app ou sur le téléphone).`;
-      }
+➡️ ${prospect.photos.length} photo(s) prise(s) (voir ci-dessous).
+      `;
 
       const mailto = `mailto:${dest}?subject=${sujet}&body=${encodeURIComponent(body)}`;
       if (navigator.onLine) {
@@ -354,7 +358,6 @@ Date: ${prospect.timestamp}
       updatePhotosPreview();
       document.getElementById('video').classList.remove('active');
       document.getElementById('takePhotoBtn').style.display = 'block';
-      document.getElementById('confirmPhotoBtn').classList.add('hidden');
     }
 
     function showToast(msg) {
