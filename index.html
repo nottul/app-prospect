@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prospects - Ouest Palettes </title>
+  <title>Prospects - Ouest Palettes</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -21,9 +21,9 @@
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
       <!-- Logo -->
       <img src="https://placehold.co/160x50/003366/FFFFFF?text=OUEST+PALETTES" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
-      <!-- Titre de l'app -->
+      <!-- Titre -->
       <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
-      <!-- Formulaire de login -->
+      <!-- Formulaire -->
       <input id="email" type="email" placeholder="Email" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
       <input id="password" type="password" placeholder="Mot de passe" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
       <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold">Se connecter</button>
@@ -69,16 +69,28 @@
         <!-- Photos -->
         <div class="mt-4">
           <p class="text-sm font-medium mb-2">Photos (facultatives)</p>
+
+          <!-- Live preview -->
           <video id="video" autoplay class="w-full h-48 bg-black rounded-lg mb-2"></video>
+
+          <!-- Aperçu photo prise -->
           <canvas id="canvas" class="w-full h-48 bg-black rounded-lg mb-2"></canvas>
 
           <!-- Miniatures -->
           <div id="photosPreview" class="flex flex-wrap mb-2"></div>
 
-          <!-- Bouton pour prendre une photo -->
-          <button id="takePhotoBtn" class="w-full bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">
-            📷 Prendre une photo
-          </button>
+          <!-- Boutons -->
+          <div id="photoButtons" class="flex space-x-2">
+            <button id="takePhotoBtn" class="flex-1 bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">
+              📷 Prendre une photo
+            </button>
+            <button id="confirmPhotoBtn" class="flex-1 bg-green-600 text-white py-2 rounded text-sm hidden" onclick="confirmPhoto()">
+              ✅ Valider
+            </button>
+            <button id="retakeBtn" class="flex-1 bg-red-600 text-white py-2 rounded text-sm hidden" onclick="retakePhoto()">
+              🔁 Recommencer
+            </button>
+          </div>
         </div>
 
         <!-- Enregistrer -->
@@ -108,29 +120,28 @@
   </div>
 
   <script>
-    // ✅ ADRESSES EMAIL FIXES (modifiables ici)
-    const EMAIL_DESTINATAIRES = [
-      'thierry.lutton@gmail.com',
-      'thierry.lutton@ouestpalettes.com'
-    ];
-
-    // Utilisateurs
-    const users = [
-      { email: 'collecteur@prospect.com', password: '1234', role: 'collecteur' },
-      { email: 'admin@prospect.com', password: '1234', role: 'admin' }
-    ];
+    // 🔧 CONFIGURATION — MODIFIEZ ICI
+    const CONFIG = {
+      utilisateurs: [
+        { email: 'collecteur@prospect.com', password: '1234', role: 'collecteur' },
+        { email: 'admin@prospect.com', password: '1234', role: 'admin' }
+      ],
+      destinatairesEmail: [
+        'thierry.lutton@gmail.com',
+        'thierry.lutton@ouestpalettes.com'
+      ]
+    };
 
     let currentUser = null;
     let currentStream = null;
-    let currentPhotos = []; // Plusieurs photos
+    let currentPhotos = [];
     let offlineQueue = JSON.parse(localStorage.getItem('prospectQueue') || '[]');
 
     // Login
     function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-      const user = users.find(u => u.email === email && u.password === password);
-
+      const user = CONFIG.utilisateurs.find(u => u.email === email && u.password === password);
       if (user) {
         currentUser = user;
         document.getElementById('loginScreen').classList.add('hidden');
@@ -196,6 +207,13 @@
     async function startCamera() {
       const video = document.getElementById('video');
       const takeBtn = document.getElementById('takePhotoBtn');
+      const confirmBtn = document.getElementById('confirmPhotoBtn');
+      const retakeBtn = document.getElementById('retakeBtn');
+
+      video.classList.add('active');
+      takeBtn.classList.add('hidden');
+      confirmBtn.classList.remove('hidden');
+      retakeBtn.classList.remove('hidden');
 
       try {
         currentStream = await navigator.mediaDevices.getUserMedia({
@@ -204,16 +222,11 @@
         video.srcObject = currentStream;
       } catch (err) {
         alert('Erreur caméra : ' + err.message);
-        return;
       }
-
-      // Capture automatique après 2 secondes
-      setTimeout(() => {
-        capturePhoto();
-      }, 2000);
     }
 
-    function capturePhoto() {
+    // Prendre la photo
+    function confirmPhoto() {
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
@@ -223,9 +236,24 @@
       const photoDataUrl = canvas.toDataURL('image/jpeg');
       currentPhotos.push(photoDataUrl);
       updatePhotosPreview();
+
+      // Masquer caméra, afficher aperçu
       video.classList.remove('active');
-      if (currentStream) currentStream.getTracks().forEach(track => track.stop());
-      document.getElementById('takePhotoBtn').style.display = 'block';
+      canvas.classList.add('active');
+      document.getElementById('takePhotoBtn').classList.remove('hidden');
+      document.getElementById('confirmPhotoBtn').classList.add('hidden');
+      document.getElementById('retakeBtn').classList.add('hidden');
+    }
+
+    // Recommencer
+    function retakePhoto() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      canvas.classList.remove('active');
+      video.classList.add('active');
+      document.getElementById('takePhotoBtn').classList.add('hidden');
+      document.getElementById('confirmPhotoBtn').classList.remove('hidden');
+      document.getElementById('retakeBtn').classList.remove('hidden');
     }
 
     function updatePhotosPreview() {
@@ -269,10 +297,8 @@
         timestamp: new Date().toLocaleString()
       };
 
-      // Envoi par e-mail
       sendByEmail(prospect);
 
-      // Sauvegarde locale
       const all = JSON.parse(localStorage.getItem('prospects') || '[]');
       all.push(prospect);
       localStorage.setItem('prospects', JSON.stringify(all));
@@ -283,7 +309,7 @@
     }
 
     function sendByEmail(prospect) {
-      const dest = EMAIL_DESTINATAIRES.join(',');
+      const dest = CONFIG.destinatairesEmail.join(',');
       const sujet = encodeURIComponent(`Nouveau prospect : ${prospect.nom}`);
       let body = `
 Nom: ${prospect.nom}
@@ -295,7 +321,10 @@ Commentaire: ${prospect.commentaire}
 Saisi par: ${prospect.userName}
 Date: ${prospect.timestamp}
 
-➡️ ${prospect.photos.length} photo(s) prise(s) (voir ci-dessous).
+➡️ Photos prises :
+${prospect.photos.map((photo, i) => `Photo ${i+1}: ${photo}`).join('\n')}
+
+➡️ Ouvrez l'app ou le navigateur pour voir les images.
       `;
 
       const mailto = `mailto:${dest}?subject=${sujet}&body=${encodeURIComponent(body)}`;
@@ -357,7 +386,10 @@ Date: ${prospect.timestamp}
       currentPhotos = [];
       updatePhotosPreview();
       document.getElementById('video').classList.remove('active');
-      document.getElementById('takePhotoBtn').style.display = 'block';
+      document.getElementById('canvas').classList.remove('active');
+      document.getElementById('takePhotoBtn').classList.remove('hidden');
+      document.getElementById('confirmPhotoBtn').classList.add('hidden');
+      document.getElementById('retakeBtn').classList.add('hidden');
     }
 
     function showToast(msg) {
