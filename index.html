@@ -70,27 +70,17 @@
         <div class="mt-4">
           <p class="text-sm font-medium mb-2">Photos (facultatives)</p>
 
-          <!-- Live preview -->
+          <!-- Caméra -->
           <video id="video" autoplay class="w-full h-48 bg-black rounded-lg mb-2"></video>
-
-          <!-- Aperçu photo prise -->
           <canvas id="canvas" class="w-full h-48 bg-black rounded-lg mb-2"></canvas>
 
           <!-- Miniatures -->
           <div id="photosPreview" class="flex flex-wrap mb-2"></div>
 
-          <!-- Boutons -->
-          <div id="photoButtons" class="flex space-x-2">
-            <button id="takePhotoBtn" class="flex-1 bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">
-              📷 Prendre une photo
-            </button>
-            <button id="confirmPhotoBtn" class="flex-1 bg-green-600 text-white py-2 rounded text-sm hidden" onclick="confirmPhoto()">
-              ✅ Valider
-            </button>
-            <button id="retakeBtn" class="flex-1 bg-red-600 text-white py-2 rounded text-sm hidden" onclick="retakePhoto()">
-              🔁 Recommencer
-            </button>
-          </div>
+          <!-- Bouton Photo -->
+          <button id="photoBtn" class="w-full bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">
+            📷 Prendre une photo
+          </button>
         </div>
 
         <!-- Enregistrer -->
@@ -206,54 +196,37 @@
     // Caméra arrière
     async function startCamera() {
       const video = document.getElementById('video');
-      const takeBtn = document.getElementById('takePhotoBtn');
-      const confirmBtn = document.getElementById('confirmPhotoBtn');
-      const retakeBtn = document.getElementById('retakeBtn');
+      const canvas = document.getElementById('canvas');
+      const photoBtn = document.getElementById('photoBtn');
 
-      video.classList.add('active');
-      takeBtn.classList.add('hidden');
-      confirmBtn.classList.remove('hidden');
-      retakeBtn.classList.remove('hidden');
-
-      try {
-        currentStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
-        });
-        video.srcObject = currentStream;
-      } catch (err) {
-        alert('Erreur caméra : ' + err.message);
+      // Basculer entre caméra et aperçu
+      if (video.classList.contains('active')) {
+        // Prendre la photo
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        const photoDataUrl = canvas.toDataURL('image/jpeg');
+        currentPhotos.push(photoDataUrl);
+        updatePhotosPreview();
+        video.classList.remove('active');
+        canvas.classList.add('active');
+        photoBtn.textContent = '📷 Prendre une photo';
+      } else {
+        // Ouvrir caméra
+        try {
+          currentStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
+          });
+          video.srcObject = currentStream;
+        } catch (err) {
+          alert('Erreur caméra : ' + err.message);
+          return;
+        }
+        video.classList.add('active');
+        canvas.classList.remove('active');
+        photoBtn.textContent = '📸 Prendre';
       }
-    }
-
-    // Prendre la photo
-    function confirmPhoto() {
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      const photoDataUrl = canvas.toDataURL('image/jpeg');
-      currentPhotos.push(photoDataUrl);
-      updatePhotosPreview();
-
-      // Masquer caméra, afficher aperçu
-      video.classList.remove('active');
-      canvas.classList.add('active');
-      document.getElementById('takePhotoBtn').classList.remove('hidden');
-      document.getElementById('confirmPhotoBtn').classList.add('hidden');
-      document.getElementById('retakeBtn').classList.add('hidden');
-    }
-
-    // Recommencer
-    function retakePhoto() {
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      canvas.classList.remove('active');
-      video.classList.add('active');
-      document.getElementById('takePhotoBtn').classList.add('hidden');
-      document.getElementById('confirmPhotoBtn').classList.remove('hidden');
-      document.getElementById('retakeBtn').classList.remove('hidden');
     }
 
     function updatePhotosPreview() {
@@ -311,23 +284,28 @@
     function sendByEmail(prospect) {
       const dest = CONFIG.destinatairesEmail.join(',');
       const sujet = encodeURIComponent(`Nouveau prospect : ${prospect.nom}`);
+      
+      // Corps du mail en HTML (les clients e-mail modernes le supportent)
       let body = `
-Nom: ${prospect.nom}
-Société: ${prospect.société}
-Adresse: ${prospect.adresse}, ${prospect.cp} ${prospect.ville}
-Téléphone: ${prospect.tel}
-E-mail: ${prospect.email}
-Commentaire: ${prospect.commentaire}
-Saisi par: ${prospect.userName}
-Date: ${prospect.timestamp}
-
-➡️ Photos prises :
-${prospect.photos.map((photo, i) => `Photo ${i+1}: ${photo}`).join('\n')}
-
-➡️ Ouvrez l'app ou le navigateur pour voir les images.
+        Nom: ${prospect.nom}<br>
+        Société: ${prospect.societe}<br>
+        Adresse: ${prospect.adresse}, ${prospect.cp} ${prospect.ville}<br>
+        Téléphone: ${prospect.tel}<br>
+        E-mail: ${prospect.email}<br>
+        Commentaire: ${prospect.commentaire}<br>
+        Saisi par: ${prospect.userName}<br>
+        Date: ${prospect.timestamp}<br><br>
+        Photos prises :<br>
       `;
+      
+      // Ajout des images en HTML
+      prospect.photos.forEach((photo, i) => {
+        body += `<img src="${photo}" width="300" style="margin:10px 0;"><br>`;
+      });
 
+      // Utilisation de mailto avec HTML (fonctionne sur certains clients comme Gmail)
       const mailto = `mailto:${dest}?subject=${sujet}&body=${encodeURIComponent(body)}`;
+      
       if (navigator.onLine) {
         window.location.href = mailto;
       } else {
@@ -387,9 +365,7 @@ ${prospect.photos.map((photo, i) => `Photo ${i+1}: ${photo}`).join('\n')}
       updatePhotosPreview();
       document.getElementById('video').classList.remove('active');
       document.getElementById('canvas').classList.remove('active');
-      document.getElementById('takePhotoBtn').classList.remove('hidden');
-      document.getElementById('confirmPhotoBtn').classList.add('hidden');
-      document.getElementById('retakeBtn').classList.add('hidden');
+      document.getElementById('photoBtn').textContent = '📷 Prendre une photo';
     }
 
     function showToast(msg) {
