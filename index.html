@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Prospect - Collecte Terrain</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    #video, #canvas, #photoPreview { display: none; }
+    #video.active, #canvas.active, #photoPreview.active { display: block; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!-- Écran de connexion -->
+  <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">🔐 App Prospect</h1>
+      <input id="email" type="email" placeholder="Email" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
+      <input id="password" type="password" placeholder="Mot de passe" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
+      <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold">Se connecter</button>
+      <p id="loginError" class="text-red-500 text-sm mt-2 hidden">Email ou mot de passe incorrect</p>
+    </div>
+  </div>
+
+  <!-- Application -->
+  <div id="app" class="hidden flex-col h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4">
+      <div class="flex justify-between items-center">
+        <h1 class="text-xl font-bold">Prospects Terrain</h1>
+        <button onclick="logout()" class="text-sm text-red-500">Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- Contenu -->
+    <div class="flex-1 p-4 space-y-6 overflow-y-auto">
+
+      <!-- Formulaire -->
+      <div class="bg-white p-5 rounded-xl shadow">
+        <h2 class="font-semibold mb-4">Nouveau Prospect</h2>
+        <div class="space-y-3">
+          <input id="nom" placeholder="Nom *" class="w-full p-2 border border-gray-300 rounded" required />
+          <input id="societe" placeholder="Société" class="w-full p-2 border border-gray-300 rounded" />
+          <input id="adresse" placeholder="Adresse" class="w-full p-2 border border-gray-300 rounded" />
+          <div class="grid grid-cols-2 gap-2">
+            <input id="cp" placeholder="Code postal" class="p-2 border border-gray-300 rounded" />
+            <input id="ville" placeholder="Ville" class="p-2 border border-gray-300 rounded" />
+          </div>
+          <input id="tel" placeholder="Téléphone" class="w-full p-2 border border-gray-300 rounded" />
+          <input id="emailProspect" placeholder="E-mail" class="w-full p-2 border border-gray-300 rounded" />
+        </div>
+
+        <!-- Localisation -->
+        <button onclick="getLocation()" class="w-full mt-3 bg-green-600 text-white py-2 rounded text-sm">
+          📍 Localiser automatiquement
+        </button>
+
+        <!-- Photo -->
+        <div class="mt-4">
+          <p class="text-sm font-medium mb-2">Photo du prospect (obligatoire)</p>
+          <video id="video" autoplay class="w-full h-48 bg-black rounded-lg mb-2"></video>
+          <canvas id="canvas" class="w-full h-48 bg-black rounded-lg mb-2"></canvas>
+          <div id="photoPreview" class="w-full h-48 bg-gray-200 rounded-lg mb-2 flex items-center justify-center">
+            <img id="photoImg" class="h-full w-full object-cover rounded-lg" />
+          </div>
+          <button id="takePhotoBtn" class="w-full bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">
+            📷 Prendre une photo
+          </button>
+          <button id="confirmPhotoBtn" class="w-full bg-green-600 text-white py-2 rounded text-sm hidden" onclick="confirmPhoto()">
+            ✅ Valider la photo
+          </button>
+        </div>
+
+        <!-- Enregistrer -->
+        <button onclick="saveProspect()" class="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold">
+          ✅ Enregistrer le prospect
+        </button>
+      </div>
+
+      <!-- Liste des prospects -->
+      <div class="bg-white p-5 rounded-xl shadow">
+        <h2 class="font-semibold mb-4">Tous les prospects</h2>
+        <div id="prospectsList" class="space-y-3">
+          <!-- Dynamique -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre hors ligne -->
+    <div id="offlineBar" class="hidden bg-yellow-500 text-white text-center py-2 text-sm">
+      📴 Hors ligne. Les données seront synchronisées dès que vous serez en ligne.
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 left-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm hidden transform -translate-x-1/2 transition-opacity duration-300">
+    Prospect enregistré !
+  </div>
+
+  <script>
+    // Utilisateurs
+    const users = [
+      { email: 'collecteur@prospect.com', password: '1234', role: 'collecteur' },
+      { email: 'admin@prospect.com', password: '1234', role: 'admin' }
+    ];
+
+    let currentUser = null;
+    let currentStream = null;
+    let photoDataUrl = null;
+    let offlineQueue = JSON.parse(localStorage.getItem('prospectQueue') || '[]');
+
+    // Login
+    function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const user = users.find(u => u.email === email && u.password === password);
+
+      if (user) {
+        currentUser = user;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        loadProspects();
+        checkOnlineStatus();
+        showOfflineQueueCount();
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('app').classList.add('hidden');
+    }
+
+    function checkOnlineStatus() {
+      const bar = document.getElementById('offlineBar');
+      window.addEventListener('online', () => { bar.classList.add('hidden'); syncOfflineData(); });
+      window.addEventListener('offline', () => { bar.classList.remove('hidden'); });
+      if (!navigator.onLine) bar.classList.remove('hidden');
+    }
+
+    function showOfflineQueueCount() {
+      if (offlineQueue.length > 0) {
+        showToast(`${offlineQueue.length} prospect(s) en attente`);
+      }
+    }
+
+    // GPS
+    function getLocation() {
+      if (!navigator.geolocation) {
+        alert('Géolocalisation non supportée');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(success, error, { timeout: 15000 });
+    }
+
+    function success(pos) {
+      reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+    }
+
+    function error(err) {
+      alert('Erreur GPS : ' + err.message);
+    }
+
+    async function reverseGeocode(lat, lng) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        const addr = data.address;
+        document.getElementById('adresse').value = addr.road || '';
+        document.getElementById('cp').value = addr.postcode || '';
+        document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
+      } catch (e) {
+        alert('Adresse non trouvée. Saisissez-la manuellement.');
+      }
+    }
+
+    // Caméra
+    async function startCamera() {
+      const video = document.getElementById('video');
+      const takeBtn = document.getElementById('takePhotoBtn');
+      const confirmBtn = document.getElementById('confirmPhotoBtn');
+
+      video.classList.add('active');
+      takeBtn.style.display = 'none';
+      confirmBtn.classList.remove('hidden');
+
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = currentStream;
+      } catch (err) {
+        alert('Erreur caméra : ' + err.message);
+      }
+    }
+
+    function confirmPhoto() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      photoDataUrl = canvas.toDataURL('image/jpeg');
+
+      document.getElementById('photoImg').src = photoDataUrl;
+      document.getElementById('canvas').classList.add('active');
+      document.getElementById('photoPreview').classList.add('active');
+
+      video.classList.remove('active');
+      currentStream.getTracks().forEach(track => track.stop());
+    }
+
+    // Sauvegarde
+    function saveProspect() {
+      const nom = document.getElementById('nom').value.trim();
+      if (!nom || !photoDataUrl) {
+        alert('Le nom et la photo sont obligatoires.');
+        return;
+      }
+
+      const prospect = {
+        id: Date.now().toString(),
+        nom,
+        societe: document.getElementById('societe').value,
+        adresse: document.getElementById('adresse').value,
+        cp: document.getElementById('cp').value,
+        ville: document.getElementById('ville').value,
+        tel: document.getElementById('tel').value,
+        email: document.getElementById('emailProspect').value,
+        photo: photoDataUrl,
+        userId: currentUser.email,
+        userName: currentUser.email.split('@')[0],
+        timestamp: new Date().toISOString()
+      };
+
+      // Sauvegarde locale
+      const all = JSON.parse(localStorage.getItem('prospects') || '[]');
+      all.push(prospect);
+      localStorage.setItem('prospects', JSON.stringify(all));
+
+      // Envoi ou file
+      if (navigator.onLine) {
+        sendEmailNotification(prospect);
+      } else {
+        offlineQueue.push(prospect);
+        localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
+        showToast('Sauvegardé hors ligne');
+      }
+
+      resetForm();
+      loadProspects();
+      showToast('✅ Prospect enregistré !');
+    }
+
+    function sendEmailNotification(p) {
+      console.log(`📧 Envoi d'email aux admins pour ${p.nom} (${p.societe})`);
+    }
+
+    async function syncOfflineData() {
+      if (!navigator.onLine || offlineQueue.length === 0) return;
+      const queue = [...offlineQueue];
+      offlineQueue = [];
+      localStorage.setItem('prospectQueue', '[]');
+      
+      queue.forEach(p => {
+        const all = JSON.parse(localStorage.getItem('prospects') || '[]');
+        if (!all.find(x => x.id === p.id)) all.push(p);
+        localStorage.setItem('prospects', JSON.stringify(all));
+        sendEmailNotification(p);
+      });
+
+      loadProspects();
+      showToast('✅ Données hors ligne synchronisées');
+    }
+
+    function loadProspects() {
+      const list = document.getElementById('prospectsList');
+      const prospects = JSON.parse(localStorage.getItem('prospects') || '[]');
+      list.innerHTML = '';
+      prospects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      prospects.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'border p-3 rounded-lg bg-gray-50';
+        item.innerHTML = `
+          <p class="font-medium">${p.nom} - <span class="text-blue-600">${p.societe}</span></p>
+          <p class="text-sm text-gray-600">${p.adresse}, ${p.cp} ${p.ville}</p>
+          <p class="text-sm">${p.tel} | ${p.email}</p>
+          <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${new Date(p.timestamp).toLocaleString()}</p>
+          <img src="${p.photo}" class="h-20 w-20 object-cover mt-2 rounded" />
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function resetForm() {
+      document.getElementById('nom').value = '';
+      document.getElementById('societe').value = '';
+      document.getElementById('adresse').value = '';
+      document.getElementById('cp').value = '';
+      document.getElementById('ville').value = '';
+      document.getElementById('tel').value = '';
+      document.getElementById('emailProspect').value = '';
+      document.getElementById('canvas').classList.remove('active');
+      document.getElementById('photoPreview').classList.remove('active');
+      photoDataUrl = null;
+      document.getElementById('takePhotoBtn').style.display = 'block';
+      document.getElementById('confirmPhotoBtn').classList.add('hidden');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+  </script>
+</body>
+</html>
