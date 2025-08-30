@@ -125,7 +125,7 @@
       // 🌐 URL du script Google Apps Script
       urlScript: 'https://script.google.com/macros/s/AKfycbzu87lQLmfv0iBsvTS2oXb79QIGW1haCvzW1Fwyj9-cD9x-op7vX6xxAYWEPzAB3D5u/exec',
       // 🌐 URL du proxy CORS
-     urlProxy = 'https://corsproxy.io/';
+      urlProxy: 'https://corsproxy.io/?' // Note le '?' à la fin
     };
 
     // ------------- VARIABLES -----------------
@@ -304,8 +304,7 @@
         method: 'POST',
         body: JSON.stringify(prospect),
         headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest' // Nécessaire pour le proxy
+          'Content-Type': 'application/json'
         }
       })
       .then(response => {
@@ -391,14 +390,6 @@
       toast.classList.remove('hidden');
       setTimeout(() => toast.classList.add('hidden'), 3000);
     }
-
-    // Demande l'accès temporaire au proxy CORS au chargement de la page
-    window.addEventListener('DOMContentLoaded', (event) => {
-       // Note: Dans un vrai déploiement, il serait préférable de gérer cela côté serveur ou avec un proxy dédié.
-       // Pour ce test, on affiche un message dans la console.
-       console.log("Pour que l'envoi fonctionne, assurez-vous d'avoir accès au proxy CORS Anywhere.");
-       console.log("Visitez https://cors-anywhere.herokuapp.com/ et cliquez sur 'Request temporary access to the demo server' si nécessaire.");
-    });
   </script>
 </body>
 </html>
