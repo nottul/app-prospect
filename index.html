@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prospects - Ouest Palettes</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="StyleSheet" />
   <style>
     body { font-family: 'Inter', sans-serif; }
     #video, #canvas, #photoPreview { display: none; }
     .photo-item { position: relative; width: 80px; height: 80px; margin: 4px; }
     .photo-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
     .photo-item button { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; width: 20px; height: 20px; border-radius: 50%; border: 0; }
+    #video { object-fit: cover; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -74,7 +75,7 @@
           <video id="video" autoplay class="w-full h-48 bg-black rounded-lg mb-2"></video>
           <canvas id="canvas" class="w-full h-48 bg-black rounded-lg mb-2"></canvas>
 
-          <!-- Miniatures -->
+          <!-- Miniature -->
           <div id="photosPreview" class="flex flex-wrap mb-2"></div>
 
           <!-- Bouton Photo -->
@@ -98,8 +99,7 @@
       </div>
     </div>
 
-    <!-- Barre hors ligne -->
-    <div id="offlineBar" class="hidden bg-yellow-500 text-white text-center py-2 text-sm">
+    <!-- Barre hors ligne -->    <div id="offlineBar" class="hidden bg-yellow-500 text-white text-center py-2 text-sm">
       📴 Hors ligne. Les données seront envoyées dès que vous serez en ligne.
     </div>
   </div>
@@ -125,6 +125,8 @@
     let currentUser = null;
     let currentStream = null;
     let currentPhotos = [];
+    let currentLat = null;
+    let currentLng = null;
     let offlineQueue = JSON.parse(localStorage.getItem('prospectQueue') || '[]');
 
     // Login
@@ -169,11 +171,13 @@
         alert('Géolocalisation non supportée');
         return;
       }
-      navigator.geolocation.getCurrentPosition(success, error, { timeout: 15000 });
+      navigator.geolocation.getCurrentPosition(success, error, {timeout: 15000 });
     }
 
     function success(pos) {
-      reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+      currentLat = pos.coords.latitude;
+      currentLng = pos.coords.longitude;
+      reverseGeocode(currentLat, currentLng);
     }
 
     function error(err) {
@@ -199,7 +203,6 @@
       const canvas = document.getElementById('canvas');
       const photoBtn = document.getElementById('photoBtn');
 
-      // Basculer entre caméra et aperçu
       if (video.classList.contains('active')) {
         // Prendre la photo
         const ctx = canvas.getContext('2d');
@@ -266,6 +269,8 @@
         email: document.getElementById('emailProspect').value,
         commentaire: document.getElementById('commentaire').value,
         photos: currentPhotos,
+        lat: currentLat,
+        lng: currentLng,
         userName: currentUser.email.split('@')[0],
         timestamp: new Date().toLocaleString()
       };
@@ -281,38 +286,31 @@
       showToast('✅ Prospect envoyé !');
     }
 
+    // Envoie les données vers Google Apps Script
     function sendByEmail(prospect) {
-      const dest = CONFIG.destinatairesEmail.join(',');
-      const sujet = encodeURIComponent(`Nouveau prospect : ${prospect.nom}`);
-      
-      // Corps du mail en HTML (les clients e-mail modernes le supportent)
-      let body = `
-        Nom: ${prospect.nom}<br>
-        Société: ${prospect.societe}<br>
-        Adresse: ${prospect.adresse}, ${prospect.cp} ${prospect.ville}<br>
-        Téléphone: ${prospect.tel}<br>
-        E-mail: ${prospect.email}<br>
-        Commentaire: ${prospect.commentaire}<br>
-        Saisi par: ${prospect.userName}<br>
-        Date: ${prospect.timestamp}<br><br>
-        Photos prises :<br>
-      `;
-      
-      // Ajout des images en HTML
-      prospect.photos.forEach((photo, i) => {
-        body += `<img src="${photo}" width="300" style="margin:10px 0;"><br>`;
-      });
+      const url = 'https://script.google.com/macros/s/AKfycbyY2DM8er-Qyp91O0LgS61AmRzEfrJy0RTCgmEmOAw8aP4I5t-m3KJZKmsBuKMjbOFC/exec'; // ← Ton URL
 
-      // Utilisation de mailto avec HTML (fonctionne sur certains clients comme Gmail)
-      const mailto = `mailto:${dest}?subject=${sujet}&body=${encodeURIComponent(body)}`;
-      
-      if (navigator.onLine) {
-        window.location.href = mailto;
-      } else {
+      fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(prospect),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.result === 'success') {
+          showToast('✅ E-mail envoyé avec succès !');
+        } else {
+          showToast('⚠️ Erreur lors de l’envoi');
+        }
+      })
+      .catch(err => {
+        console.error('Erreur:', err);
+        showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
         offlineQueue.push(prospect);
         localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
-        showToast('Sauvegardé hors ligne');
-      }
+      });
     }
 
     function syncOfflineData() {
@@ -344,6 +342,7 @@
           <p class="text-sm">${p.tel} | ${p.email}</p>
           <p class="text-sm">${p.commentaire}</p>
           <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${p.timestamp}</p>
+          ${p.lat && p.lng ? `<p class="text-xs"><a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="text-blue-500">📍 Voir sur Google Maps</a></p>` : ''}
           <div class="flex mt-2">
             ${p.photos ? p.photos.map(img => `<img src="${img}" class="h-20 w-20 object-cover rounded mr-1" />`).join('') : ''}
           </div>
@@ -362,6 +361,8 @@
       document.getElementById('emailProspect').value = '';
       document.getElementById('commentaire').value = '';
       currentPhotos = [];
+      currentLat = null;
+      currentLng = null;
       updatePhotosPreview();
       document.getElementById('video').classList.remove('active');
       document.getElementById('canvas').classList.remove('active');
