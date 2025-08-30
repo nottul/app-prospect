@@ -110,24 +110,31 @@
   </div>
 
   <script>
-    // 🔧 CONFIGURATION — MODIFIEZ ICI
+    // ------------- CONSTANTES -----------------
     const CONFIG = {
+      // 🔐 Utilisateurs autorisés
       utilisateurs: [
         { email: 'collecteur@prospect.com', password: '1234', role: 'collecteur' },
         { email: 'admin@prospect.com', password: '1234', role: 'admin' }
       ],
+      // 📧 Destinataires des e-mails
       destinatairesEmail: [
         'thierry.lutton@gmail.com',
         'thierry.lutton@ouestpalettes.com'
-      ]
+      ],
+      // 🌐 URL du script Google Apps Script
+      urlScript: 'https://script.google.com/macros/s/AKfycbzu87lQLmfv0iBsvTS2oXb79QIGW1haCvzW1Fwyj9-cD9x-op7vX6xxAYWEPzAB3D5u/exec'
     };
 
+    // ------------- VARIABLES -----------------
     let currentUser = null;
     let currentStream = null;
     let currentPhotos = [];
     let currentLat = null;
     let currentLng = null;
     let offlineQueue = JSON.parse(localStorage.getItem('prospectQueue') || '[]');
+
+    // ------------- FONCTIONS -----------------
 
     // Login
     function login() {
@@ -288,14 +295,15 @@
 
     // Envoie les données vers Google Apps Script
     function sendByEmail(prospect) {
-      // ✅ UTILISATION DE LA NOUVELLE URL ICI
-      const url = 'https://script.google.com/macros/s/AKfycbygxjUiC8QRIvcZRr_RTeO4_KdK6Gz1NshAfv9fXJljihb-4oFqEdMBE9kyMAPx-FkE/exec';
+      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+      const targetUrl = CONFIG.urlScript;
 
-      fetch(url, {
+      fetch(proxyUrl + targetUrl, {
         method: 'POST',
         body: JSON.stringify(prospect),
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
         }
       })
       .then(response => {
