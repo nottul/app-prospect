@@ -123,7 +123,9 @@
         'thierry.lutton@ouestpalettes.com'
       ],
       // 🌐 URL du script Google Apps Script
-      urlScript: 'https://script.google.com/macros/s/AKfycbzu87lQLmfv0iBsvTS2oXb79QIGW1haCvzW1Fwyj9-cD9x-op7vX6xxAYWEPzAB3D5u/exec'
+      urlScript: 'https://script.google.com/macros/s/AKfycbzu87lQLmfv0iBsvTS2oXb79QIGW1haCvzW1Fwyj9-cD9x-op7vX6xxAYWEPzAB3D5u/exec',
+      // 🌐 URL du proxy CORS
+      urlProxy: 'https://cors-anywhere.herokuapp.com/'
     };
 
     // ------------- VARIABLES -----------------
@@ -293,9 +295,9 @@
       showToast('✅ Prospect envoyé !');
     }
 
-    // Envoie les données vers Google Apps Script
+    // Envoie les données vers Google Apps Script via le proxy CORS
     function sendByEmail(prospect) {
-      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+      const proxyUrl = CONFIG.urlProxy;
       const targetUrl = CONFIG.urlScript;
 
       fetch(proxyUrl + targetUrl, {
@@ -303,7 +305,7 @@
         body: JSON.stringify(prospect),
         headers: {
           'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest' // Nécessaire pour le proxy
         }
       })
       .then(response => {
@@ -389,6 +391,14 @@
       toast.classList.remove('hidden');
       setTimeout(() => toast.classList.add('hidden'), 3000);
     }
+
+    // Demande l'accès temporaire au proxy CORS au chargement de la page
+    window.addEventListener('DOMContentLoaded', (event) => {
+       // Note: Dans un vrai déploiement, il serait préférable de gérer cela côté serveur ou avec un proxy dédié.
+       // Pour ce test, on affiche un message dans la console.
+       console.log("Pour que l'envoi fonctionne, assurez-vous d'avoir accès au proxy CORS Anywhere.");
+       console.log("Visitez https://cors-anywhere.herokuapp.com/ et cliquez sur 'Request temporary access to the demo server' si nécessaire.");
+    });
   </script>
 </body>
 </html>
