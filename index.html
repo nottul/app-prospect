@@ -143,8 +143,9 @@
       ],
       // 🌐 URL du script Google Apps Script - MISE À JOUR
       urlScript: 'https://script.google.com/macros/s/AKfycbwqU0tIKtsMr0Fz1-IyZmktNfCogG2WyzIu4Qy3M6G6gePcDKsSG0D-_TdfxEmNzi3A/exec',
-      // 🌐 URL du proxy CORS - Correction : suppression du '?' à la fin pour corsproxy.io
-      urlProxy: 'https://corsproxy.io/' // Note l'absence de '?' à la fin
+      // 🌐 URL du proxy CORS - Configuration pour un proxy générique
+      // On utilisera un autre proxy plus fiable
+      // urlProxy: 'https://corsproxy.io/' 
     };
 
     // ------------- VARIABLES -----------------
@@ -217,19 +218,18 @@
     }
 
     async function reverseGeocode(lat, lng) {
-     // Correction : suppression des espaces dans l'URL
-     try {
-       // Correction : suppression des espaces dans l'URL
-       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-       const data = await res.json();
-       const addr = data.address;
-       document.getElementById('adresse').value = addr.road || '';
-       document.getElementById('cp').value = addr.postcode || '';
-       document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
-     } catch (e) {
-       alert('Adresse non trouvée. Saisissez-la manuellement.');
-     }
-   }
+      // Correction : suppression des espaces dans l'URL
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        const addr = data.address;
+        document.getElementById('adresse').value = addr.road || '';
+        document.getElementById('cp').value = addr.postcode || '';
+        document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
+      } catch (e) {
+        alert('Adresse non trouvée. Saisissez-la manuellement.');
+      }
+    }
 
     // Caméra arrière
     async function startCamera() {
@@ -344,57 +344,60 @@
       showToast('✅ Prospect envoyé !');
     }
 
-    // Envoie les données vers Google Apps Script via le proxy CORS
-    function sendByEmail(prospect) {
-      // Ajoute les destinataires définis dans CONFIG aux données du prospect
-      prospect.destinatairesEmail = CONFIG.destinatairesEmail;
+   // Envoie les données vers Google Apps Script
+   // CORRECTION MAJEURE : Utilisation d'un proxy CORS plus fiable et construction correcte de l'URL
+   function sendByEmail(prospect) {
+     // Ajoute les destinataires définis dans CONFIG aux données du prospect
+     prospect.destinatairesEmail = CONFIG.destinatairesEmail;
 
-      const proxyUrl = CONFIG.urlProxy; // 'https://corsproxy.io/'
-      const targetUrl = CONFIG.urlScript; // 'https://script.google.com/macros/s/.../exec'
+     const targetUrl = CONFIG.urlScript; // 'https://script.google.com/macros/s/.../exec'
 
-      // Construire l'URL combinée CORRECTEMENT pour corsproxy.io
-      // Il faut concaténer directement l'URL cible à l'URL du proxy
-      const fullUrl = proxyUrl + targetUrl; // https://corsproxy.io/https://script.google.com/...
-      
-      console.log("URL d'envoi (via proxy):", fullUrl); // Log pour débogage
+     // Utilisation d'un proxy CORS plus fiable : robwu.nl/cors-anywhere
+     // Ce proxy nécessite que l'URL cible soit passée dans l'en-tête 'x-requested-with'
+     // et que l'URL de requête soit celle du proxy lui-même.
+     const proxyUrl = 'https://robwu.nl/cors-anywhere.html'; // Page d'info du proxy
+     const apiUrl = 'https://cors-anywhere.herokuapp.com/';  // Point d'entrée réel de l'API proxy
 
-      fetch(fullUrl, {
-        method: 'POST',
-        body: JSON.stringify(prospect),
-        headers: {
-          'Content-Type': 'application/json'
-          // Ne pas ajouter 'X-Requested-With': 'XMLHttpRequest' ici avec corsproxy.io
-        }
-      })
-      .then(response => {
-        console.log("Réponse brute du proxy:", response); // Log pour débogage
-        // Vérifier si la réponse HTTP est OK (status 200-299)
-        if (!response.ok) {
-          // Si le proxy ou le script renvoie une erreur (ex: 404, 500), cela échouera ici
-          throw new Error(`Erreur HTTP : ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Données JSON reçues du script:", data); // Log pour débogage
-        // Vérifier la structure de la réponse du script Google Apps Script
-        // Nous attendons { status: 'success', ... } ou { status: 'error', ... }
-        if (data && data.status === 'success') {
-          showToast('✅ E-mail envoyé avec succès !');
-        } else {
-          // Si le script renvoie { status: 'error', message: '...' }
-          const errorMsg = data && data.message ? data.message : 'Réponse inattendue du serveur.';
-          showToast('⚠️ Erreur lors de l’envoi : ' + errorMsg);
-        }
-      })
-      .catch(err => {
-        // Attrape les erreurs réseau, CORS, ou les erreurs de parsing JSON
-        console.error('Erreur détaillée lors de l\'envoi:', err); // Log détaillé de l'erreur
-        showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
-        offlineQueue.push(prospect);
-        localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
-      });
-    }
+     console.log("Tentative d'envoi à l'URL du script via proxy:", targetUrl);
+
+     fetch(apiUrl, { // On appelle l'API du proxy
+       method: 'POST',
+       body: JSON.stringify(prospect),
+       headers: {
+         'Content-Type': 'application/json',
+         // L'URL cible est passée dans un en-tête spécial pour ce proxy
+         'X-Requested-With': targetUrl // <-- C'est ici que l'on indique l'URL réelle du script
+       }
+     })
+     .then(response => {
+       console.log("Réponse brute du proxy:", response);
+       // Vérifier si la réponse HTTP est OK (status 200-299)
+       if (!response.ok) {
+         // Si le proxy ou le script renvoie une erreur (ex: 404, 500), cela échouera ici
+         throw new Error(`Erreur HTTP : ${response.status} ${response.statusText}`);
+       }
+       return response.json();
+     })
+     .then(data => {
+       console.log("Données JSON reçues du script:", data);
+       // Vérifier la structure de la réponse du script Google Apps Script
+       // Nous attendons { status: 'success', ... } ou { status: 'error', ... }
+       if (data && data.status === 'success') {
+         showToast('✅ E-mail envoyé avec succès !');
+       } else {
+         // Si le script renvoie { status: 'error', message: '...' }
+         const errorMsg = data && data.message ? data.message : 'Réponse inattendue du serveur.';
+         showToast('⚠️ Erreur lors de l’envoi : ' + errorMsg);
+       }
+     })
+     .catch(err => {
+       // Attrape les erreurs réseau, CORS, ou les erreurs de parsing JSON
+       console.error('Erreur détaillée lors de l\'envoi:', err);
+       showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
+       offlineQueue.push(prospect);
+       localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
+     });
+   }
 
 
     function syncOfflineData() {
