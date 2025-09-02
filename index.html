@@ -342,7 +342,11 @@
     }
 
     // Envoie les données vers Google Apps Script via le proxy CORS
+    // Modifiée pour envoyer aussi les destinataires d'e-mails
     function sendByEmail(prospect) {
+      // Ajoute les destinataires définis dans CONFIG aux données du prospect
+      prospect.destinatairesEmail = CONFIG.destinatairesEmail;
+
       // Correction : suppression des espaces
       const proxyUrl = CONFIG.urlProxy;
       const targetUrl = CONFIG.urlScript;
@@ -384,6 +388,7 @@
         const all = JSON.parse(localStorage.getItem('prospects') || '[]');
         all.push(p);
         localStorage.setItem('prospects', JSON.stringify(all));
+        // sendByEmail s'occupe d'ajouter les destinataires
         sendByEmail(p);
       });
       loadProspects();
