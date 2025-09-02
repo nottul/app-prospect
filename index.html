@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prospects - Ouest Palettes</title>
-  <!-- Utilisation de Tailwind CSS via CDN - Correction de l'URL -->
+  <!-- Utilisation de Tailwind CSS via CDN - CORRIGE -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -23,7 +23,7 @@
   <!-- Écran de connexion -->
   <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-      <!-- Logo - Correction des espaces dans l'URL -->
+      <!-- Logo - CORRIGE -->
       <img src="https://i.ibb.co/6cRdDfrM/logo-ouest-palettes.png" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
       <!-- Titre -->
       <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
@@ -141,7 +141,7 @@
         'thierry.lutton@gmail.com',
         'Alexandre.roy@ouestpalettes.com'
       ],
-      // 🌐 URL du script Google Apps Script - Correction : suppression des espaces
+      // 🌐 URL du script Google Apps Script - CORRIGE
       urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec'
       // 🌐 URL du proxy CORS - Supprimé car non nécessaire si le déploiement GAS est configuré correctement
       // urlProxy: 'https://corsproxy.io/?'
@@ -217,7 +217,7 @@
     }
 
     async function reverseGeocode(lat, lng) {
-      // Correction : suppression des espaces dans l'URL
+      // CORRIGE : suppression des espaces dans l'URL
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
         const data = await res.json();
@@ -343,7 +343,7 @@
     }
 
     // Envoie les données vers Google Apps Script
-    // Modification : Envoie les données en tant que texte brut au lieu de JSON
+    // MODIFIEE : Envoie les données en tant que texte brut au lieu de JSON
     function sendByEmail(prospect) {
       const targetUrl = CONFIG.urlScript; // Utilise l'URL directe
 
@@ -415,7 +415,7 @@
           <p class="text-sm">${p.tel} | ${p.email}</p>
           <p class="text-sm">${p.commentaire}</p>
           <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${p.timestamp}</p>
-          <!-- Correction : suppression des espaces dans l'URL -->
+          <!-- CORRIGE : suppression des espaces dans l'URL -->
           ${p.lat && p.lng ? `<p class="text-xs"><a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="text-blue-500">📍 Voir sur Google Maps</a></p>` : ''}
           <div class="flex mt-2">
             ${p.photos ? p.photos.map(img => `<img src="${img}" class="h-20 w-20 object-cover rounded mr-1" />`).join('') : ''}
