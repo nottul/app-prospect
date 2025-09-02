@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prospects - Ouest Palettes</title>
-  <!-- Utilisation de Tailwind CSS via CDN - Correction de l'URL -->
+  <!-- Utilisation de Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -23,7 +23,7 @@
   <!-- Écran de connexion -->
   <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-      <!-- Logo - Correction des espaces dans l'URL -->
+      <!-- Logo -->
       <img src="https://i.ibb.co/6cRdDfrM/logo-ouest-palettes.png" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
       <!-- Titre -->
       <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
@@ -118,7 +118,7 @@
   <script>
     // ------------- CONSTANTES -----------------
     const CONFIG = {
-      // 🔐 Utilisateurs autorisés - Correction : ajout de la virgule manquante
+      // 🔐 Utilisateurs autorisés
       utilisateurs: [
         { email: 'thierryl', password: '1234', role: 'admin' },
         { email: 'johan', password: '1234', role: 'collecteur' },
@@ -140,8 +140,9 @@
         'thierry.lutton@gmail.com',
         'Alexandre.roy@ouestpalettes.com'
       ],
-      // 🌐 URL du script Google Apps Script - Correction : suppression des espaces
-      urlScript: 'https://script.google.com/macros/s/AKfycbz8zOA6Aln8d8g874ZpjdkW40uA6GRx2zvbrZdj7PwZVhHxwjCm1Nj_YqRzPhVk-zw/execproxy CORS - Correction : suppression des espaces
+      // 🌐 URL du script Google Apps Script
+      urlScript: 'https://script.google.com/macros/s/AKfycbz8zOA6Aln8d8g874ZpjdkW40uA6GRx2zvbrZdj7PwZVhHxwjCm1Nj_YqRzPhVk-zw/exec',
+      // 🌐 URL du proxy CORS
       urlProxy: 'https://corsproxy.io/?' // Note le '?' à la fin
     };
 
@@ -215,7 +216,6 @@
     }
 
     async function reverseGeocode(lat, lng) {
-      // Correction : suppression des espaces dans l'URL
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
         const data = await res.json();
@@ -320,7 +320,7 @@
         cp: document.getElementById('cp').value,
         ville: document.getElementById('ville').value,
         tel: document.getElementById('tel').value,
-        email: document.getElementById('emailProspect').value,
+        emailProspect: document.getElementById('emailProspect').value, // Changé de 'email' à 'emailProspect'
         commentaire: document.getElementById('commentaire').value,
         photos: currentPhotos,
         lat: currentLat,
@@ -346,7 +346,6 @@
       // Ajoute les destinataires définis dans CONFIG aux données du prospect
       prospect.destinatairesEmail = CONFIG.destinatairesEmail;
 
-      // Correction : suppression des espaces
       const proxyUrl = CONFIG.urlProxy;
       const targetUrl = CONFIG.urlScript;
 
@@ -405,10 +404,9 @@
         item.innerHTML = `
           <p class="font-medium">${p.nom} - <span class="text-blue-600">${p.societe}</span></p>
           <p class="text-sm text-gray-600">${p.adresse}, ${p.cp} ${p.ville}</p>
-          <p class="text-sm">${p.tel} | ${p.email}</p>
+          <p class="text-sm">${p.tel} | ${p.emailProspect}</p>
           <p class="text-sm">${p.commentaire}</p>
           <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${p.timestamp}</p>
-          <!-- Correction : suppression des espaces dans l'URL -->
           ${p.lat && p.lng ? `<p class="text-xs"><a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="text-blue-500">📍 Voir sur Google Maps</a></p>` : ''}
           <div class="flex mt-2">
             ${p.photos ? p.photos.map(img => `<img src="${img}" class="h-20 w-20 object-cover rounded mr-1" />`).join('') : ''}
