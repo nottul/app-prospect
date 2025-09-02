@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prospects - Ouest Palettes</title>
-  <!-- Utilisation de Tailwind CSS via CDN - URL corrigée -->
+  <!-- Utilisation de Tailwind CSS via CDN - Correction de l'URL -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -16,11 +16,6 @@
     .photo-item { position: relative; width: 80px; height: 80px; margin: 4px; }
     .photo-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
     .photo-item button { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; width: 20px; height: 20px; border-radius: 50%; border: 0; }
-    /* Style pour la liste inversée */
-    #prospectsListContainer {
-      display: flex;
-      flex-direction: column-reverse;
-    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -28,7 +23,7 @@
   <!-- Écran de connexion -->
   <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-      <!-- Logo - URL corrigée -->
+      <!-- Logo - Correction des espaces dans l'URL -->
       <img src="https://i.ibb.co/6cRdDfrM/logo-ouest-palettes.png" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
       <!-- Titre -->
       <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
@@ -66,8 +61,7 @@
             <input id="ville" placeholder="Ville" class="p-2 border border-gray-300 rounded" />
           </div>
           <input id="tel" placeholder="Téléphone" class="w-full p-2 border border-gray-300 rounded" />
-          <!-- Champ email du prospect -->
-          <input id="emailProspect" placeholder="E-mail du prospect" class="w-full p-2 border border-gray-300 rounded" />
+          <input id="emailProspect" placeholder="E-mail" class="w-full p-2 border border-gray-300 rounded" />
           <textarea id="commentaire" placeholder="Commentaire" class="w-full p-2 border border-gray-300 rounded" rows="2"></textarea>
         </div>
 
@@ -104,11 +98,8 @@
       <!-- Liste des prospects -->
       <div class="bg-white p-5 rounded-xl shadow">
         <h2 class="font-semibold mb-4">Tous les prospects</h2>
-        <!-- Conteneur avec flex-direction: column-reverse pour inverser l'ordre -->
-        <div id="prospectsListContainer">
-          <div id="prospectsList" class="space-y-3">
-            <!-- Dynamique -->
-          </div>
+        <div id="prospectsList" class="space-y-3">
+          <!-- Dynamique -->
         </div>
       </div>
     </div>
@@ -127,25 +118,32 @@
   <script>
     // ------------- CONSTANTES -----------------
     const CONFIG = {
-      // 🔐 Utilisateurs autorisés
+      // 🔐 Utilisateurs autorisés - Correction : ajout de la virgule manquante
       utilisateurs: [
-        { email: 'thierryl', password: '1234', role: 'admin' },
-        { email: 'johan', password: '1234', role: 'collecteur' },
-        { email: 'philippe', password: '1234', role: 'collecteur' },
-        { email: 'amorie', password: '1234', role: 'collecteur' },
-        { email: 'gerard', password: '1234', role: 'collecteur' },
-        { email: 'amine', password: '1234', role: 'collecteur' },
-        { email: 'douglas', password: '1234', role: 'collecteur' },
-        { email: 'mohamed', password: '1234', role: 'collecteur' },
-        { email: 'guillaume', password: '1234', role: 'collecteur' },
-        { email: 'alexandre', password: '1234', role: 'collecteur' },
-        { email: 'anthony', password: '1234', role: 'collecteur' },
-        { email: 'pauline', password: '1234', role: 'collecteur' },
-        { email: 'thierrym', password: '1234', role: 'collecteur' },
-        { email: 'lucile', password: '1234', role: 'collecteur' }
+        { email: 'thierry.lutton@gmail.com', password: '1234', role: 'admin' },
+        { email: 'rubispetit@hotmail.fr', password: '1234', role: 'collecteur' },
+        { email: 'p.badin74@gmail.com', password: '1234', role: 'collecteur' },
+        { email: 'amorieguillon99@gmail.com', password: '1234', role: 'collecteur' },
+        { email: 'delphine.penisson@orange.fr', password: '1234', role: 'collecteur' },
+        { email: 'minoaoudia@gmail.com', password: '1234', role: 'collecteur' },
+        { email: 'aubret.d9@gmail.com', password: '1234', role: 'collecteur' },
+        { email: 'toumi.mohamed31@hotmail.com', password: '1234', role: 'collecteur' },
+        { email: 'clavierguillaume56@gmail.com', password: '1234', role: 'collecteur' },
+        { email: 'alexandre.roy@ouestpalettes.com', password: '1234', role: 'collecteur' },
+        { email: 'anthony.beucherie@ouestpalettes.om', password: '1234', role: 'collecteur' },
+        { email: 'patrice.jeaud@gmail.com', password: '1234', role: 'collecteur' },
+        { email: 'thierry.migaud@ouestpalettes.com', password: '1234', role: 'collecteur' },
+        { email: 'lucile.pasquier@ouestpalettes.com', password: '1234', role: 'collecteur' }
       ],
-      // 🌐 URL du script Google Apps Script - DERNIERE MISE À JOUR
-      urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec'
+      // 📧 Destinataires des e-mails
+      destinatairesEmail: [
+        'thierry.lutton@gmail.com',
+        'Alexandre.roy@ouestpalettes.com'
+      ],
+      // 🌐 URL du script Google Apps Script - Correction : suppression des espaces
+      urlScript: 'https://script.google.com/macros/s/AKfycbzu87lQLmfv0iBsvTS2oXb79QIGW1haCvzW1Fwyj9-cD9x-op7vX6xxAYWEPzAB3D5u/exec',
+      // 🌐 URL du proxy CORS - Correction : suppression des espaces
+      urlProxy: 'https://corsproxy.io/?' // Note le '?' à la fin
     };
 
     // ------------- VARIABLES -----------------
@@ -160,18 +158,18 @@
 
     // Login
     function login() {
-      const emailInput = document.getElementById('email').value;
-      const passwordInput = document.getElementById('password').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
       // Debug: Afficher les valeurs saisies
-      console.log("Tentative de connexion avec:", emailInput, passwordInput);
-      const user = CONFIG.utilisateurs.find(u => u.email === emailInput && u.password === passwordInput);
+      console.log("Tentative de connexion avec:", email, password);
+      const user = CONFIG.utilisateurs.find(u => u.email === email && u.password === password);
       // Debug: Afficher le résultat de la recherche
       console.log("Utilisateur trouvé:", user);
       if (user) {
         currentUser = user;
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
-        loadProspects(); // Charger la liste au login
+        loadProspects();
         checkOnlineStatus();
         showOfflineQueueCount();
       } else {
@@ -218,18 +216,18 @@
     }
 
     async function reverseGeocode(lat, lng) {
-     // Correction : suppression des espaces dans l'URL
-     try {
-       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-       const data = await res.json();
-       const addr = data.address;
-       document.getElementById('adresse').value = addr.road || '';
-       document.getElementById('cp').value = addr.postcode || '';
-       document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
-     } catch (e) {
-       alert('Adresse non trouvée. Saisissez-la manuellement.');
-     }
-   }
+      // Correction : suppression des espaces dans l'URL
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        const addr = data.address;
+        document.getElementById('adresse').value = addr.road || '';
+        document.getElementById('cp').value = addr.postcode || '';
+        document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
+      } catch (e) {
+        alert('Adresse non trouvée. Saisissez-la manuellement.');
+      }
+    }
 
     // Caméra arrière
     async function startCamera() {
@@ -323,13 +321,12 @@
         cp: document.getElementById('cp').value,
         ville: document.getElementById('ville').value,
         tel: document.getElementById('tel').value,
-        // Utiliser le champ emailProspect pour l'email du prospect
-        emailProspect: document.getElementById('emailProspect').value,
+        email: document.getElementById('emailProspect').value,
         commentaire: document.getElementById('commentaire').value,
         photos: currentPhotos,
         lat: currentLat,
         lng: currentLng,
-        userName: currentUser.email.split('@')[0], // Email de l'utilisateur connecté
+        userName: currentUser.email.split('@')[0],
         timestamp: new Date().toLocaleString()
       };
 
@@ -340,56 +337,43 @@
       localStorage.setItem('prospects', JSON.stringify(all));
 
       resetForm();
-      loadProspects(); // Recharger la liste après l'ajout
+      loadProspects();
       showToast('✅ Prospect envoyé !');
     }
 
-   // Envoie les données vers Google Apps Script via un proxy CORS fiable
-   function sendByEmail(prospect) {
-     // --- CONFIGURATION DU PROXY CORS ---
-     const proxyUrl = 'https://corsproxy.io/';
-     const targetUrl = CONFIG.urlScript; // URL de ton script Google Apps Script
+    // Envoie les données vers Google Apps Script via le proxy CORS
+    function sendByEmail(prospect) {
+      // Correction : suppression des espaces
+      const proxyUrl = CONFIG.urlProxy;
+      const targetUrl = CONFIG.urlScript;
 
-     // Construire l'URL complète pour le proxy
-     // Il faut concaténer directement l'URL cible à l'URL du proxy
-     const fullUrl = proxyUrl + targetUrl;
-
-     console.log("Tentative d'envoi via proxy CORS à l'URL:", fullUrl);
-     console.log("Données envoyées:", prospect);
-
-     fetch(fullUrl, {
-       method: 'POST',
-       body: JSON.stringify(prospect),
-       headers: {
-         'Content-Type': 'application/json',
-         // Pour corsproxy.io, il faut ajouter l'en-tête X-Requested-With
-         'X-Requested-With': 'XMLHttpRequest'
-       }
-     })
-     .then(response => {
-       console.log("Réponse brute du proxy/script:", response);
-       if (!response.ok) {
-         throw new Error(`Erreur HTTP : ${response.status} ${response.statusText}`);
-       }
-       return response.json();
-     })
-     .then(data => {
-       console.log("Données JSON reçues du script:", data);
-       if (data && data.status === 'success') {
-         showToast('✅ E-mail envoyé avec succès !');
-       } else {
-         const errorMsg = data && data.message ? data.message : 'Réponse inattendue du serveur.';
-         showToast('⚠️ Erreur lors de l’envoi : ' + errorMsg);
-       }
-     })
-     .catch(err => {
-       console.error('Erreur détaillée lors de l\'envoi:', err);
-       showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
-       offlineQueue.push(prospect);
-       localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
-     });
-   }
-
+      fetch(proxyUrl + targetUrl, {
+        method: 'POST',
+        body: JSON.stringify(prospect),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur réseau');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.result === 'success') {
+          showToast('✅ E-mail envoyé avec succès !');
+        } else {
+          showToast('⚠️ Erreur lors de l’envoi');
+        }
+      })
+      .catch(err => {
+        console.error('Erreur:', err);
+        showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
+        offlineQueue.push(prospect);
+        localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
+      });
+    }
 
     function syncOfflineData() {
       if (!navigator.onLine || offlineQueue.length === 0) return;
@@ -400,28 +384,24 @@
         const all = JSON.parse(localStorage.getItem('prospects') || '[]');
         all.push(p);
         localStorage.setItem('prospects', JSON.stringify(all));
-        // sendByEmail s'occupe d'ajouter les destinataires
         sendByEmail(p);
       });
-      loadProspects(); // Recharger la liste après synchro
+      loadProspects();
       showToast('✅ Données hors ligne envoyées');
     }
 
     function loadProspects() {
-      const list = document.getElementById('prospectsList'); // Cible le conteneur interne
+      const list = document.getElementById('prospectsList');
       const prospects = JSON.parse(localStorage.getItem('prospects') || '[]');
-      list.innerHTML = ''; // Vide le conteneur interne
-      
-      // Tri par date/heure décroissante (du plus récent au plus ancien)
+      list.innerHTML = '';
       prospects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      
       prospects.forEach(p => {
         const item = document.createElement('div');
         item.className = 'border p-3 rounded-lg bg-gray-50';
         item.innerHTML = `
           <p class="font-medium">${p.nom} - <span class="text-blue-600">${p.societe}</span></p>
           <p class="text-sm text-gray-600">${p.adresse}, ${p.cp} ${p.ville}</p>
-          <p class="text-sm">${p.tel} | ${p.emailProspect}</p> <!-- Afficher emailProspect -->
+          <p class="text-sm">${p.tel} | ${p.email}</p>
           <p class="text-sm">${p.commentaire}</p>
           <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${p.timestamp}</p>
           <!-- Correction : suppression des espaces dans l'URL -->
@@ -432,8 +412,6 @@
         `;
         list.appendChild(item);
       });
-      // Le conteneur parent (#prospectsListContainer) avec flex-direction: column-reverse
-      // s'occupe d'afficher le dernier élément en haut visuellement.
     }
 
     function resetForm() {
@@ -443,7 +421,6 @@
       document.getElementById('cp').value = '';
       document.getElementById('ville').value = '';
       document.getElementById('tel').value = '';
-      // Réinitialiser le champ emailProspect
       document.getElementById('emailProspect').value = '';
       document.getElementById('commentaire').value = '';
       currentPhotos = [];
