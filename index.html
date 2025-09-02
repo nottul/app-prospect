@@ -348,7 +348,7 @@
    function sendByEmail(prospect) {
      // Ajoute les destinataires définis dans CONFIG aux données du prospect
      // (même si le script ne les utilise plus, on les envoie quand même au cas où)
-     prospect.destinatairesEmail = CONFIG.destinatairesEmail;
+     // prospect.destinatairesEmail = CONFIG.destinatairesEmail; // Pas nécessaire ici
 
      // --- CONFIGURATION DU PROXY CORS ---
      const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Proxy CORS
