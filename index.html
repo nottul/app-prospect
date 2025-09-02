@@ -123,7 +123,7 @@
         { email: 'thierry', password: '1234', role: 'admin' },
         { email: 'rubispetit@hotmail.fr', password: '1234', role: 'collecteur' },
         { email: 'p.badin74@gmail.com', password: '1234', role: 'collecteur' },
-        { email: 'amorie', password: '1234', role: 'collecteur' },
+        { email: 'amorieguillon99@gmail.com', password: '1234', role: 'collecteur' },
         { email: 'delphine.penisson@orange.fr', password: '1234', role: 'collecteur' },
         { email: 'minoaoudia@gmail.com', password: '1234', role: 'collecteur' },
         { email: 'aubret.d9@gmail.com', password: '1234', role: 'collecteur' },
@@ -141,9 +141,9 @@
         'Alexandre.roy@ouestpalettes.com'
       ],
       // 🌐 URL du script Google Apps Script - Correction : suppression des espaces
-      urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec',
-      // 🌐 URL du proxy CORS - Correction : suppression des espaces
-      urlProxy: 'https://corsproxy.io/?' // Note le '?' à la fin
+      urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec'
+      // 🌐 URL du proxy CORS - Supprimé car non nécessaire si le déploiement GAS est configuré correctement
+      // urlProxy: 'https://corsproxy.io/?'
     };
 
     // ------------- VARIABLES -----------------
@@ -321,7 +321,7 @@
         cp: document.getElementById('cp').value,
         ville: document.getElementById('ville').value,
         tel: document.getElementById('tel').value,
-        email: document.getElementById('emailProspect').value,
+        email: document.getElementById('emailProspect').value, // Correction du nom du champ
         commentaire: document.getElementById('commentaire').value,
         photos: currentPhotos,
         lat: currentLat,
@@ -341,13 +341,12 @@
       showToast('✅ Prospect envoyé !');
     }
 
-    // Envoie les données vers Google Apps Script via le proxy CORS
+    // Envoie les données vers Google Apps Script
+    // Correction : suppression du proxy et vérification de 'status'
     function sendByEmail(prospect) {
-      // Correction : suppression des espaces
-      const proxyUrl = CONFIG.urlProxy;
-      const targetUrl = CONFIG.urlScript;
+      const targetUrl = CONFIG.urlScript; // Utilise l'URL directe
 
-      fetch(proxyUrl + targetUrl, {
+      fetch(targetUrl, {
         method: 'POST',
         body: JSON.stringify(prospect),
         headers: {
@@ -361,10 +360,11 @@
         return response.json();
       })
       .then(data => {
-        if (data && data.result === 'success') {
+        // Correction : vérifie 'status' au lieu de 'result'
+        if (data && data.status === 'success') {
           showToast('✅ E-mail envoyé avec succès !');
         } else {
-          showToast('⚠️ Erreur lors de l’envoi');
+          showToast('⚠️ Erreur lors de l’envoi: ' + (data.message || 'Inconnue'));
         }
       })
       .catch(err => {
@@ -421,7 +421,7 @@
       document.getElementById('cp').value = '';
       document.getElementById('ville').value = '';
       document.getElementById('tel').value = '';
-      document.getElementById('emailProspect').value = '';
+      document.getElementById('emailProspect').value = ''; // Correction du nom du champ
       document.getElementById('commentaire').value = '';
       currentPhotos = [];
       currentLat = null;
