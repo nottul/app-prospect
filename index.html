@@ -343,51 +343,43 @@
     }
 
     // Envoie les données vers Google Apps Script
-    // Correction : suppression du proxy, vérification de 'status', et gestion améliorée des erreurs
+    // Modification : Envoie les données en tant que texte brut au lieu de JSON
     function sendByEmail(prospect) {
       const targetUrl = CONFIG.urlScript; // Utilise l'URL directe
 
       console.log("Envoi des données vers:", targetUrl); // Pour le débogage
-      console.log("Données envoyées:", JSON.stringify(prospect)); // Pour le débogage
+      console.log("Données envoyées (objet):", prospect); // Pour le débogage
+
+      // Convertir l'objet JavaScript en chaîne JSON
+      const jsonData = JSON.stringify(prospect);
+      console.log("Données envoyées (JSON string):", jsonData); // Pour le débogage
 
       fetch(targetUrl, {
         method: 'POST',
-        body: JSON.stringify(prospect),
+        // Envoyer la chaîne JSON comme corps brut
+        body: jsonData,
+        // Indiquer que le corps est du texte brut
         headers: {
-          'Content-Type': 'application/json'
-          // L'en-tête suivant peut être nécessaire si vous rencontrez encore des problèmes CORS
-          // après avoir configuré le déploiement. Essayez d'abord sans.
-          // 'Access-Control-Allow-Origin': '*'
+          'Content-Type': 'text/plain' // <-- Changement crucial ici
         }
-        // Ajout de l'option pour gérer les erreurs HTTP comme des erreurs JS
       })
       .then(response => {
         console.log('Réponse HTTP reçue:', response.status, response.statusText); // Pour le débogage
-        // Vérifie si la réponse est OK (statut 200-299)
         if (!response.ok) {
-          // Si la réponse n'est pas OK, lancez une erreur pour qu'elle soit attrapée par .catch()
-          // Cela permet de distinguer les erreurs réseau des erreurs applicatives
-          // provenant du script GAS (comme une erreur dans doPost).
           throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
         }
-        // Essayez de parser la réponse JSON
-        return response.json();
+        return response.json(); // On s'attend toujours à une réponse JSON du script GAS
       })
       .then(data => {
-        // Vérifie la structure de la réponse de votre script GAS
-        // Votre script GAS renvoie { status: 'success', message: '...' } ou { status: 'error', message: '...' }
         console.log('Réponse reçue du script GAS (données JSON):', data); // Pour le débogage
         if (data && data.status === 'success') {
           showToast('✅ E-mail envoyé avec succès !');
         } else {
-          // Si le script GAS renvoie une erreur applicative
           showToast('⚠️ Erreur lors de l’envoi: ' + (data.message || 'Inconnue'));
         }
       })
       .catch(err => {
-        // Cette partie gère les erreurs réseau (ex: CORS, script non trouvé, déploiement mal configuré)
-        // ET les erreurs lancées par le premier bloc .then (ex: response.ok === false)
-        console.error('Erreur attrapée dans .catch (problème de réseau ou serveur probable):', err); // Pour le débogage
+        console.error('Erreur attrapée dans .catch (problème de réseau ou serveur probable):', err);
         showToast('⚠️ Erreur réseau ou serveur. Sauvegardé hors ligne.');
         offlineQueue.push(prospect);
         localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
