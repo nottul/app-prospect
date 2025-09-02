@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prospects - Ouest Palettes</title>
   <!-- Utilisation de Tailwind CSS via CDN - Correction de l'URL -->
-  <script src="https://cdn.tailwindcss.com"></script> <!-- Espace supprimé -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -24,7 +24,7 @@
   <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
       <!-- Logo - Correction des espaces dans l'URL -->
-      <img src="https://i.ibb.co/6cRdDfrM/logo-ouest-palettes.png" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" /> <!-- Espaces supprimés -->
+      <img src="https://i.ibb.co/6cRdDfrM/logo-ouest-palettes.png" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
       <!-- Titre -->
       <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
       <!-- Formulaire -->
@@ -142,7 +142,7 @@
         'Alexandre.roy@ouestpalettes.com'
       ],
       // 🌐 URL du script Google Apps Script - Correction : suppression des espaces
-      urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec' // Espace supprimé
+      urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec'
       // 🌐 URL du proxy CORS - Supprimé car non nécessaire si le déploiement GAS est configuré correctement
       // urlProxy: 'https://corsproxy.io/?'
     };
@@ -219,7 +219,7 @@
     async function reverseGeocode(lat, lng) {
       // Correction : suppression des espaces dans l'URL
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`); // Espaces supprimés
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
         const data = await res.json();
         const addr = data.address;
         document.getElementById('adresse').value = addr.road || '';
@@ -347,11 +347,17 @@
     function sendByEmail(prospect) {
       const targetUrl = CONFIG.urlScript; // Utilise l'URL directe
 
+      console.log("Envoi des données vers:", targetUrl); // Pour le débogage
+      console.log("Données envoyées:", JSON.stringify(prospect)); // Pour le débogage
+
       fetch(targetUrl, {
         method: 'POST',
         body: JSON.stringify(prospect),
         headers: {
           'Content-Type': 'application/json'
+          // L'en-tête suivant peut être nécessaire si vous rencontrez encore des problèmes CORS
+          // après avoir configuré le déploiement. Essayez d'abord sans.
+          // 'Access-Control-Allow-Origin': '*'
         }
         // Ajout de l'option pour gérer les erreurs HTTP comme des erreurs JS
       })
@@ -418,7 +424,7 @@
           <p class="text-sm">${p.commentaire}</p>
           <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${p.timestamp}</p>
           <!-- Correction : suppression des espaces dans l'URL -->
-          ${p.lat && p.lng ? `<p class="text-xs"><a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="text-blue-500">📍 Voir sur Google Maps</a></p>` : ''} <!-- Espaces supprimés -->
+          ${p.lat && p.lng ? `<p class="text-xs"><a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="text-blue-500">📍 Voir sur Google Maps</a></p>` : ''}
           <div class="flex mt-2">
             ${p.photos ? p.photos.map(img => `<img src="${img}" class="h-20 w-20 object-cover rounded mr-1" />`).join('') : ''}
           </div>
