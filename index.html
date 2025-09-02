@@ -146,8 +146,6 @@
       ],
       // 🌐 URL du script Google Apps Script - DERNIERE MISE À JOUR
       urlScript: 'https://script.google.com/macros/s/AKfycbwRwN3rgjG7Vom7lXxyeSImVo_hyJyH1XB8wxUM29NsXdePbez9ekivwerU3ha9wijT/exec'
-      // Note : Pas de proxy configuré ici. L'appel fetch utilisera directement l'URL du script.
-      // Si CORS est un problème, il faudra réintroduire un proxy comme dans les versions précédentes.
     };
 
     // ------------- VARIABLES -----------------
@@ -346,51 +344,62 @@
       showToast('✅ Prospect envoyé !');
     }
 
-    // Envoie les données vers Google Apps Script
-    // Utilisation directe de l'URL du script, sans proxy spécifique configuré dans CONFIG
-    function sendByEmail(prospect) {
-      const targetUrl = CONFIG.urlScript; // 'https://script.google.com/macros/s/.../exec'
+   // Envoie les données vers Google Apps Script via un proxy CORS fiable
+   function sendByEmail(prospect) {
+     // Ajoute les destinataires définis dans CONFIG aux données du prospect
+     // (même si le script ne les utilise plus, on les envoie quand même au cas où)
+     prospect.destinatairesEmail = CONFIG.destinatairesEmail;
 
-      console.log("Tentative d'envoi à l'URL du script:", targetUrl);
+     // --- CONFIGURATION DU PROXY CORS ---
+     const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Proxy CORS
+     const targetUrl = CONFIG.urlScript; // URL de ton script Google Apps Script
 
-      fetch(targetUrl, {
-        method: 'POST',
-        body: JSON.stringify(prospect),
-        headers: {
-          'Content-Type': 'application/json'
-          // Pas d'en-tête 'X-Requested-With' spécifique ajouté ici pour un appel direct.
-          // Si un proxy est nécessaire, il faudra le réintroduire et l'utiliser comme avant.
-        }
-      })
-      .then(response => {
-        console.log("Réponse brute du script:", response);
-        // Vérifier si la réponse HTTP est OK (status 200-299)
-        if (!response.ok) {
-          // Si le script renvoie une erreur (ex: 404, 500), cela échouera ici
-          throw new Error(`Erreur HTTP : ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Données JSON reçues du script:", data);
-        // Vérifier la structure de la réponse du script Google Apps Script
-        // Nous attendons { status: 'success', ... } ou { status: 'error', ... }
-        if (data && data.status === 'success') {
-          showToast('✅ E-mail envoyé avec succès !');
-        } else {
-          // Si le script renvoie { status: 'error', message: '...' }
-          const errorMsg = data && data.message ? data.message : 'Réponse inattendue du serveur.';
-          showToast('⚠️ Erreur lors de l’envoi : ' + errorMsg);
-        }
-      })
-      .catch(err => {
-        // Attrape les erreurs réseau, CORS, ou les erreurs de parsing JSON
-        console.error('Erreur détaillée lors de l\'envoi:', err);
-        showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
-        offlineQueue.push(prospect);
-        localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
-      });
-    }
+     // Construire l'URL complète pour le proxy
+     // Le proxy attend l'URL cible dans l'URL de la requête elle-même.
+     const fullUrl = proxyUrl + targetUrl;
+     // Exemple: https://cors-anywhere.herokuapp.com/https://script.google.com/macros/s/.../exec
+
+     console.log("Tentative d'envoi via proxy CORS à l'URL:", fullUrl);
+     console.log("Données envoyées:", prospect);
+
+     fetch(fullUrl, {
+       method: 'POST',
+       body: JSON.stringify(prospect),
+       headers: {
+         'Content-Type': 'application/json',
+         // En-tête très important pour que le proxy fonctionne correctement
+         'X-Requested-With': 'XMLHttpRequest'
+       }
+     })
+     .then(response => {
+       console.log("Réponse brute du proxy/script:", response);
+       // Vérifier si la réponse HTTP est OK (status 200-299)
+       if (!response.ok) {
+         // Si le proxy ou le script renvoie une erreur (ex: 404, 500), cela échouera ici
+         throw new Error(`Erreur HTTP : ${response.status} ${response.statusText}`);
+       }
+       return response.json();
+     })
+     .then(data => {
+       console.log("Données JSON reçues du script:", data);
+       // Vérifier la structure de la réponse du script Google Apps Script
+       // Nous attendons { status: 'success', ... } ou { status: 'error', ... }
+       if (data && data.status === 'success') {
+         showToast('✅ E-mail envoyé avec succès !');
+       } else {
+         // Si le script renvoie { status: 'error', message: '...' }
+         const errorMsg = data && data.message ? data.message : 'Réponse inattendue du serveur.';
+         showToast('⚠️ Erreur lors de l’envoi : ' + errorMsg);
+       }
+     })
+     .catch(err => {
+       // Attrape les erreurs réseau, CORS, ou les erreurs de parsing JSON
+       console.error('Erreur détaillée lors de l\'envoi:', err);
+       showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
+       offlineQueue.push(prospect);
+       localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
+     });
+   }
 
 
     function syncOfflineData() {
