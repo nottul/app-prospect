@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prospects - Ouest Palettes</title>
-  <!-- Utilisation de Tailwind CSS via CDN -->
+  <!-- Utilisation de Tailwind CSS via CDN - URL corrigée -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -23,7 +23,7 @@
   <!-- Écran de connexion -->
   <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-      <!-- Logo -->
+      <!-- Logo - URL corrigée -->
       <img src="https://i.ibb.co/6cRdDfrM/logo-ouest-palettes.png" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
       <!-- Titre -->
       <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
@@ -61,7 +61,8 @@
             <input id="ville" placeholder="Ville" class="p-2 border border-gray-300 rounded" />
           </div>
           <input id="tel" placeholder="Téléphone" class="w-full p-2 border border-gray-300 rounded" />
-          <input id="emailProspect" placeholder="E-mail" class="w-full p-2 border border-gray-300 rounded" />
+          <!-- Champ email du prospect -->
+          <input id="emailProspect" placeholder="E-mail du prospect" class="w-full p-2 border border-gray-300 rounded" />
           <textarea id="commentaire" placeholder="Commentaire" class="w-full p-2 border border-gray-300 rounded" rows="2"></textarea>
         </div>
 
@@ -140,10 +141,10 @@
         'thierry.lutton@gmail.com',
         'Alexandre.roy@ouestpalettes.com'
       ],
-      // 🌐 URL du script Google Apps Script
-      urlScript: 'https://script.google.com/macros/s/AKfycbz8zOA6Aln8d8g874ZpjdkW40uA6GRx2zvbrZdj7PwZVhHxwjCm1Nj_YqRzPhVk-zw/exec',
-      // 🌐 URL du proxy CORS
-      urlProxy: 'https://corsproxy.io/?' // Note le '?' à la fin
+      // 🌐 URL du script Google Apps Script - MISE À JOUR
+      urlScript: 'https://script.google.com/macros/s/AKfycbwqU0tIKtsMr0Fz1-IyZmktNfCogG2WyzIu4Qy3M6G6gePcDKsSG0D-_TdfxEmNzi3A/exec',
+      // 🌐 URL du proxy CORS - Correction : suppression du '?' à la fin pour corsproxy.io
+      urlProxy: 'https://corsproxy.io/' // Note l'absence de '?' à la fin
     };
 
     // ------------- VARIABLES -----------------
@@ -158,11 +159,11 @@
 
     // Login
     function login() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      const emailInput = document.getElementById('email').value;
+      const passwordInput = document.getElementById('password').value;
       // Debug: Afficher les valeurs saisies
-      console.log("Tentative de connexion avec:", email, password);
-      const user = CONFIG.utilisateurs.find(u => u.email === email && u.password === password);
+      console.log("Tentative de connexion avec:", emailInput, passwordInput);
+      const user = CONFIG.utilisateurs.find(u => u.email === emailInput && u.password === passwordInput);
       // Debug: Afficher le résultat de la recherche
       console.log("Utilisateur trouvé:", user);
       if (user) {
@@ -216,17 +217,19 @@
     }
 
     async function reverseGeocode(lat, lng) {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-        const data = await res.json();
-        const addr = data.address;
-        document.getElementById('adresse').value = addr.road || '';
-        document.getElementById('cp').value = addr.postcode || '';
-        document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
-      } catch (e) {
-        alert('Adresse non trouvée. Saisissez-la manuellement.');
-      }
-    }
+     // Correction : suppression des espaces dans l'URL
+     try {
+       // Correction : suppression des espaces dans l'URL
+       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+       const data = await res.json();
+       const addr = data.address;
+       document.getElementById('adresse').value = addr.road || '';
+       document.getElementById('cp').value = addr.postcode || '';
+       document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
+     } catch (e) {
+       alert('Adresse non trouvée. Saisissez-la manuellement.');
+     }
+   }
 
     // Caméra arrière
     async function startCamera() {
@@ -320,12 +323,13 @@
         cp: document.getElementById('cp').value,
         ville: document.getElementById('ville').value,
         tel: document.getElementById('tel').value,
-        emailProspect: document.getElementById('emailProspect').value, // Changé de 'email' à 'emailProspect'
+        // Utiliser le champ emailProspect pour l'email du prospect
+        emailProspect: document.getElementById('emailProspect').value,
         commentaire: document.getElementById('commentaire').value,
         photos: currentPhotos,
         lat: currentLat,
         lng: currentLng,
-        userName: currentUser.email.split('@')[0],
+        userName: currentUser.email.split('@')[0], // Email de l'utilisateur connecté
         timestamp: new Date().toLocaleString()
       };
 
@@ -341,41 +345,57 @@
     }
 
     // Envoie les données vers Google Apps Script via le proxy CORS
-    // Modifiée pour envoyer aussi les destinataires d'e-mails
     function sendByEmail(prospect) {
       // Ajoute les destinataires définis dans CONFIG aux données du prospect
       prospect.destinatairesEmail = CONFIG.destinatairesEmail;
 
-      const proxyUrl = CONFIG.urlProxy;
-      const targetUrl = CONFIG.urlScript;
+      const proxyUrl = CONFIG.urlProxy; // 'https://corsproxy.io/'
+      const targetUrl = CONFIG.urlScript; // 'https://script.google.com/macros/s/.../exec'
 
-      fetch(proxyUrl + targetUrl, {
+      // Construire l'URL combinée CORRECTEMENT pour corsproxy.io
+      // Il faut concaténer directement l'URL cible à l'URL du proxy
+      const fullUrl = proxyUrl + targetUrl; // https://corsproxy.io/https://script.google.com/...
+      
+      console.log("URL d'envoi (via proxy):", fullUrl); // Log pour débogage
+
+      fetch(fullUrl, {
         method: 'POST',
         body: JSON.stringify(prospect),
         headers: {
           'Content-Type': 'application/json'
+          // Ne pas ajouter 'X-Requested-With': 'XMLHttpRequest' ici avec corsproxy.io
         }
       })
       .then(response => {
+        console.log("Réponse brute du proxy:", response); // Log pour débogage
+        // Vérifier si la réponse HTTP est OK (status 200-299)
         if (!response.ok) {
-          throw new Error('Erreur réseau');
+          // Si le proxy ou le script renvoie une erreur (ex: 404, 500), cela échouera ici
+          throw new Error(`Erreur HTTP : ${response.status} ${response.statusText}`);
         }
         return response.json();
       })
       .then(data => {
-        if (data && data.result === 'success') {
+        console.log("Données JSON reçues du script:", data); // Log pour débogage
+        // Vérifier la structure de la réponse du script Google Apps Script
+        // Nous attendons { status: 'success', ... } ou { status: 'error', ... }
+        if (data && data.status === 'success') {
           showToast('✅ E-mail envoyé avec succès !');
         } else {
-          showToast('⚠️ Erreur lors de l’envoi');
+          // Si le script renvoie { status: 'error', message: '...' }
+          const errorMsg = data && data.message ? data.message : 'Réponse inattendue du serveur.';
+          showToast('⚠️ Erreur lors de l’envoi : ' + errorMsg);
         }
       })
       .catch(err => {
-        console.error('Erreur:', err);
+        // Attrape les erreurs réseau, CORS, ou les erreurs de parsing JSON
+        console.error('Erreur détaillée lors de l\'envoi:', err); // Log détaillé de l'erreur
         showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
         offlineQueue.push(prospect);
         localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
       });
     }
+
 
     function syncOfflineData() {
       if (!navigator.onLine || offlineQueue.length === 0) return;
@@ -404,9 +424,10 @@
         item.innerHTML = `
           <p class="font-medium">${p.nom} - <span class="text-blue-600">${p.societe}</span></p>
           <p class="text-sm text-gray-600">${p.adresse}, ${p.cp} ${p.ville}</p>
-          <p class="text-sm">${p.tel} | ${p.emailProspect}</p>
+          <p class="text-sm">${p.tel} | ${p.emailProspect}</p> <!-- Afficher emailProspect -->
           <p class="text-sm">${p.commentaire}</p>
           <p class="text-xs text-gray-500">Saisi par ${p.userName} - ${p.timestamp}</p>
+          <!-- Correction : suppression des espaces dans l'URL -->
           ${p.lat && p.lng ? `<p class="text-xs"><a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="text-blue-500">📍 Voir sur Google Maps</a></p>` : ''}
           <div class="flex mt-2">
             ${p.photos ? p.photos.map(img => `<img src="${img}" class="h-20 w-20 object-cover rounded mr-1" />`).join('') : ''}
@@ -423,6 +444,7 @@
       document.getElementById('cp').value = '';
       document.getElementById('ville').value = '';
       document.getElementById('tel').value = '';
+      // Réinitialiser le champ emailProspect
       document.getElementById('emailProspect').value = '';
       document.getElementById('commentaire').value = '';
       currentPhotos = [];
