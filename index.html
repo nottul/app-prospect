@@ -99,7 +99,12 @@
         { email: 'pauline', password: '1234', role: 'collecteur' },
         { email: 'lucile', password: '1234', role: 'collecteur' }
       ],
-      // URL Apps Script fournie
+      // Destinataires email maintenant ici (au lieu du script GAS)
+      destinatairesEmail: [
+        'thierry.lutton@gmail.com',
+        'alexandre.roy@ouestpalettes.com'
+      ],
+      // URL du script Google Apps Script
       urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec'
     };
 
@@ -113,7 +118,7 @@
 
     // ---------- AUTH ----------
     function login() {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const user = CONFIG.utilisateurs.find(u => u.email === email && u.password === password);
       if (user) {
@@ -185,7 +190,6 @@
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0);
 
-        // Redimension max 1280px + compression 0.6
         const maxW = 1280;
         let outputCanvas = canvas;
         if (canvas.width > maxW) {
@@ -247,13 +251,14 @@
         cp: document.getElementById('cp').value,
         ville: document.getElementById('ville').value,
         tel: document.getElementById('tel').value,
-        email: document.getElementById('emailProspect').value, // aligné avec le script GAS
+        email: document.getElementById('emailProspect').value,
         commentaire: document.getElementById('commentaire').value,
         photos: currentPhotos,
         lat: currentLat,
         lng: currentLng,
-        userName: currentUser ? currentUser.email.split('@')[0] : 'inconnu',
-        timestamp: new Date().toLocaleString()
+        userName: currentUser ? currentUser.email : 'inconnu',
+        timestamp: new Date().toLocaleString(),
+        destinatairesEmail: CONFIG.destinatairesEmail  // Envoyé au script GAS
       };
 
       sendByEmail(prospect);
@@ -262,8 +267,8 @@
       all.push(prospect);
       localStorage.setItem('prospects', JSON.stringify(all));
 
-      resetForm();
-      loadProspects();
+      resetForm();  // Réinitialise tout
+      loadProspects(); // Recharge la liste (limitée à 10)
       showToast('✅ Prospect envoyé !');
     }
 
@@ -271,17 +276,19 @@
       fetch(CONFIG.urlScript, {
         method: 'POST',
         body: JSON.stringify(prospect),
-        headers: { 'Content-Type': 'text/plain' } // requête simple
+        headers: { 'Content-Type': 'text/plain' }
       })
       .then(async (response) => {
-        let data = null; try { data = await response.json(); } catch (_) {}
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        if (!data || data.status !== 'success') throw new Error(data?.message || 'Réponse invalide');
+        let data = null;
+        try { data = await response.json(); } catch (_) {}
+        if (!response.ok || !data || data.status !== 'success') {
+          throw new Error(data?.message || `HTTP ${response.status}`);
+        }
         showToast('✅ E-mail envoyé avec succès !');
       })
       .catch(err => {
         console.error('Erreur réseau/serveur:', err);
-        showToast('⚠️ Erreur réseau ou serveur. Sauvegardé hors ligne.');
+        showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
         offlineQueue.push(prospect);
         localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
       });
@@ -306,8 +313,10 @@
       const list = document.getElementById('prospectsList');
       const prospects = JSON.parse(localStorage.getItem('prospects') || '[]');
       list.innerHTML = '';
+      // Tri du + récent au + ancien
       prospects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      prospects.forEach(p => {
+      // Limite à 10
+      prospects.slice(0, 10).forEach(p => {
         const item = document.createElement('div');
         item.className = 'border p-3 rounded-lg bg-gray-50';
         item.innerHTML = `
@@ -324,6 +333,7 @@
     }
 
     function resetForm() {
+      // Vider tous les champs
       document.getElementById('nom').value = '';
       document.getElementById('societe').value = '';
       document.getElementById('adresse').value = '';
@@ -332,16 +342,20 @@
       document.getElementById('tel').value = '';
       document.getElementById('emailProspect').value = '';
       document.getElementById('commentaire').value = '';
+      // Réinitialiser état
       currentPhotos = [];
       currentLat = null;
       currentLng = null;
       updatePhotosPreview();
+      // Caméra
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       video.classList.remove('active');
       canvas.classList.remove('active');
-      if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-      currentStream = null;
+      if (currentStream) {
+        currentStream.getTracks().forEach(t => t.stop());
+        currentStream = null;
+      }
       document.getElementById('photoBtn').textContent = '📷 Prendre une photo';
     }
 
