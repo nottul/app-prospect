@@ -1,372 +1,396 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prospects - Ouest Palettes</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    #video, #canvas { display: none; }
-    #video.active, #canvas.active { display: block; width: 100%; height: auto; max-height: 50vh; object-fit: cover; border-radius: 0.5rem; }
-    .photo-item { position: relative; width: 80px; height: 80px; margin: 4px; }
-    .photo-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
-    .photo-item button { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; width: 20px; height: 20px; border-radius: 50%; border: 0; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prospects - Ouest Palettes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    #video, #canvas { display: none; }
+    #video.active, #canvas.active { display: block; width: 100%; height: auto; max-height: 50vh; object-fit: cover; border-radius: 0.5rem; }
+    .photo-item { position: relative; width: 80px; height: 80px; margin: 4px; }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+    .photo-item button { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; width: 20px; height: 20px; border-radius: 50%; border: 0; cursor: pointer; }
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
 
-  <!-- Écran de connexion -->
-  <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-      <img src="https://i.ibb.co/6cRdDfrM/logo-ouest-palettes.png" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
-      <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
-      <input id="email" type="email" placeholder="Email" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
-      <input id="password" type="password" placeholder="Mot de passe" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
-      <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold">Se connecter</button>
-      <p id="loginError" class="text-red-500 text-sm mt-2 hidden">Email ou mot de passe incorrect</p>
-    </div>
-  </div>
+    <div id="loginScreen" class="flex flex-col items-center justify-center h-screen px-6">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
+      <img src="https://i.ibb.co/6cRdDfrM/logo-ouest-palettes.png" alt="Ouest Palettes" class="w-40 h-12 mx-auto mb-4" />
+      <p class="text-lg font-semibold text-blue-600 mb-6">Prospects</p>
+      <input id="email" type="email" placeholder="Email" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
+      <input id="password" type="password" placeholder="Mot de passe" class="w-full p-3 mb-4 border border-gray-300 rounded-lg" />
+      <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold">Se connecter</button>
+      <p id="loginError" class="text-red-500 text-sm mt-2 hidden">Email ou mot de passe incorrect</p>
+    </div>
+  </div>
 
-  <!-- Application -->
-  <div id="app" class="hidden flex-col h-screen">
-    <header class="bg-white shadow-sm p-4">
-      <div class="flex justify-between items-center">
-        <h1 class="text-xl font-bold">Prospects</h1>
-        <button onclick="logout()" class="text-sm text-red-500">Déconnexion</button>
-      </div>
-    </header>
+    <div id="app" class="hidden flex-col h-screen">
+    <header class="bg-white shadow-sm p-4">
+      <div class="flex justify-between items-center">
+        <h1 class="text-xl font-bold">Prospects</h1>
+        <button onclick="logout()" class="text-sm text-red-500">Déconnexion</button>
+      </div>
+    </header>
 
-    <div class="flex-1 p-4 space-y-6 overflow-y-auto">
-      <div class="bg-white p-5 rounded-xl shadow">
-        <h2 class="font-semibold mb-4">Nouveau Prospect</h2>
-        <div class="space-y-3">
-          <input id="nom" placeholder="Nom *" class="w-full p-2 border border-gray-300 rounded" required />
-          <input id="societe" placeholder="Société" class="w-full p-2 border border-gray-300 rounded" />
-          <input id="adresse" placeholder="Adresse" class="w-full p-2 border border-gray-300 rounded" />
-          <div class="grid grid-cols-2 gap-2">
-            <input id="cp" placeholder="Code postal" class="p-2 border border-gray-300 rounded" />
-            <input id="ville" placeholder="Ville" class="p-2 border border-gray-300 rounded" />
-          </div>
-          <input id="tel" placeholder="Téléphone" class="w-full p-2 border border-gray-300 rounded" />
-          <input id="emailProspect" placeholder="E-mail" class="w-full p-2 border border-gray-300 rounded" />
-          <textarea id="commentaire" placeholder="Commentaire" class="w-full p-2 border border-gray-300 rounded" rows="2"></textarea>
-        </div>
+    <div class="flex-1 p-4 space-y-6 overflow-y-auto">
+      <div class="bg-white p-5 rounded-xl shadow">
+        <h2 class="font-semibold mb-4">Nouveau Prospect</h2>
+        <div class="space-y-3">
+          <input id="nom" placeholder="Nom *" class="w-full p-2 border border-gray-300 rounded" required />
+          <input id="societe" placeholder="Société" class="w-full p-2 border border-gray-300 rounded" />
+          <input id="adresse" placeholder="Adresse" class="w-full p-2 border border-gray-300 rounded" />
+          <div class="grid grid-cols-2 gap-2">
+            <input id="cp" placeholder="Code postal" class="p-2 border border-gray-300 rounded" />
+            <input id="ville" placeholder="Ville" class="p-2 border border-gray-300 rounded" />
+          </div>
+          <input id="tel" placeholder="Téléphone" class="w-full p-2 border border-gray-300 rounded" />
+          <input id="emailProspect" placeholder="E-mail" class="w-full p-2 border border-gray-300 rounded" />
+          <textarea id="commentaire" placeholder="Commentaire" class="w-full p-2 border border-gray-300 rounded" rows="2"></textarea>
+        </div>
 
-        <button onclick="getLocation()" class="w-full mt-3 bg-green-600 text-white py-2 rounded text-sm">📍 Localiser automatiquement</button>
+        <button onclick="getLocation()" class="w-full mt-3 bg-green-600 text-white py-2 rounded text-sm">📍 Localiser automatiquement</button>
 
-        <div class="mt-4">
-          <p class="text-sm font-medium mb-2">Photos (facultatives)</p>
-          <video id="video" autoplay playsinline class="w-full h-48 bg-black rounded-lg mb-2"></video>
-          <canvas id="canvas" class="w-full h-48 bg-black rounded-lg mb-2"></canvas>
-          <div id="photosPreview" class="flex flex-wrap mb-2"></div>
-          <button id="photoBtn" class="w-full bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">📷 Prendre une photo</button>
-        </div>
+        <div class="mt-4">
+          <p class="text-sm font-medium mb-2">Photos (facultatives)</p>
+          <video id="video" autoplay playsinline class="w-full h-48 bg-black rounded-lg mb-2"></video>
+          <canvas id="canvas" class="w-full h-48 bg-black rounded-lg mb-2"></canvas>
+          <div id="photosPreview" class="flex flex-wrap mb-2"></div>
+          <button id="photoBtn" class="w-full bg-gray-600 text-white py-2 rounded text-sm" onclick="startCamera()">📷 Prendre une photo</button>
+        </div>
 
-        <button onclick="saveProspect()" class="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold">✅ Enregistrer et envoyer</button>
-      </div>
+        <button onclick="saveProspect()" class="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold">✅ Enregistrer et envoyer</button>
+      </div>
 
-      <div class="bg-white p-5 rounded-xl shadow">
-        <h2 class="font-semibold mb-4">Tous les prospects</h2>
-        <div id="prospectsList" class="space-y-3"></div>
-      </div>
-    </div>
+      <div class="bg-white p-5 rounded-xl shadow">
+        <h2 class="font-semibold mb-4">Tous les prospects</h2>
+        <div id="prospectsList" class="space-y-3"></div>
+      </div>
+    </div>
 
-    <div id="offlineBar" class="hidden bg-yellow-500 text-white text-center py-2 text-sm">📴 Hors ligne. Les données seront envoyées dès que vous serez en ligne.</div>
-  </div>
+    <div id="offlineBar" class="hidden bg-yellow-500 text-white text-center py-2 text-sm">📴 Hors ligne. Les données seront envoyées dès que vous serez en ligne.</div>
+  </div>
 
-  <div id="toast" class="fixed bottom-5 left-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm hidden transform -translate-x-1/2 transition-opacity duration-300">Prospect enregistré !</div>
+  <div id="toast" class="fixed bottom-5 left-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm hidden transform -translate-x-1/2 transition-opacity duration-300">Prospect enregistré !</div>
 
-  <script>
-    // ---------- CONFIG ----------
-    const CONFIG = {
-      utilisateurs: [
-        { email: 'thierry', password: '1234', role: 'admin' },
-        { email: 'johan', password: '1234', role: 'collecteur' },
-        { email: 'philippe', password: '1234', role: 'collecteur' },
-        { email: 'amorie', password: '1234', role: 'collecteur' },
-        { email: 'gerard', password: '1234', role: 'collecteur' },
-        { email: 'amine', password: '1234', role: 'collecteur' },
-        { email: 'douglas', password: '1234', role: 'collecteur' },
-        { email: 'mohamed', password: '1234', role: 'collecteur' },
-        { email: 'guillaume', password: '1234', role: 'collecteur' },
-        { email: 'alexandre', password: '1234', role: 'collecteur' },
-        { email: 'anthony', password: '1234', role: 'collecteur' },
-        { email: 'patrice', password: '1234', role: 'collecteur' },
-        { email: 'thierrym', password: '1234', role: 'collecteur' },
-        { email: 'nicolas', password: '1234', role: 'collecteur' },
-        { email: 'pauline', password: '1234', role: 'collecteur' },
-        { email: 'lucile9', password: '1234', role: 'collecteur' }
-      ],
-      // Destinataires email maintenant ici (au lieu du script GAS)
-      destinatairesEmail: [
-        'thierry.lutton@gmail.com',
-        'ceramica.bresil@gmail.com',
-        'patrice.jeaud@ouestpalettes.com',
-        'alexandre.roy@ouestpalettes.com'
-      ],
-      // URL du script Google Apps Script
-      urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec'
+  <script>
+    // ---------- CONFIG ----------
+    const CONFIG = {
+      utilisateurs: [
+        { email: 'thierry', password: '1234', role: 'admin' },
+        { email: 'johan', password: '1234', role: 'collecteur' },
+        { email: 'philippe', password: '1234', role: 'collecteur' },
+        { email: 'amorie', password: '1234', role: 'collecteur' },
+        { email: 'gerard', password: '1234', role: 'collecteur' },
+        { email: 'amine', password: '1234', role: 'collecteur' },
+        { email: 'douglas', password: '1234', role: 'collecteur' },
+        { email: 'mohamed', password: '1234', role: 'collecteur' },
+        { email: 'guillaume', password: '1234', role: 'collecteur' },
+        { email: 'alexandre', password: '1234', role: 'collecteur' },
+        { email: 'anthony', password: '1234', role: 'collecteur' },
+        { email: 'patrice', password: '1234', role: 'collecteur' },
+        { email: 'thierrym', password: '1234', role: 'collecteur' },
+        { email: 'nicolas', password: '1234', role: 'collecteur' },
+        { email: 'pauline', password: '1234', role: 'collecteur' },
+        { email: 'lucile9', password: '1234', role: 'collecteur' }
+      ],
+      // Destinataires email maintenant ici (au lieu du script GAS)
+      destinatairesEmail: [
+        'thierry.lutton@gmail.com',
+        'ceramica.bresil@gmail.com',
+        'patrice.jeaud@ouestpalettes.com',
+        'alexandre.roy@ouestpalettes.com'
+      ],
+      // URL du script Google Apps Script
+      urlScript: 'https://script.google.com/macros/s/AKfycbzUdr6O_7KOj6b-mLaX2anpSdHoLlTqoJ9syDQr2WbuDi1xiqazPm9DLB8ncWIQ0HU/exec'
+    };
+
+    // ---------- ÉTAT ----------
+    let currentUser = null;
+    let currentStream = null;
+    let currentPhotos = [];
+    let currentLat = null;
+    let currentLng = null;
+    let offlineQueue = JSON.parse(localStorage.getItem('prospectQueue') || '[]');
+
+    // ---------- AUTH ----------
+    function login() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const user = CONFIG.utilisateurs.find(u => u.email === email && u.password === password);
+      if (user) {
+        currentUser = user;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        loadProspects();
+        checkOnlineStatus();
+        showOfflineQueueCount();
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('app').classList.add('hidden');
+    }
+
+    // ---------- OFFLINE ----------
+    function checkOnlineStatus() {
+      const bar = document.getElementById('offlineBar');
+      window.addEventListener('online', () => { bar.classList.add('hidden'); syncOfflineData(); });
+      window.addEventListener('offline', () => { bar.classList.remove('hidden'); });
+      if (!navigator.onLine) bar.classList.remove('hidden');
+    }
+    function showOfflineQueueCount() {
+      if (offlineQueue.length > 0) showToast(`${offlineQueue.length} prospect(s) en attente`);
+    }
+
+    // ---------- GPS ----------
+    function getLocation() {
+      if (!navigator.geolocation) { alert('Géolocalisation non supportée'); return; }
+      navigator.geolocation.getCurrentPosition(success, error, { timeout: 15000 });
+    }
+    function success(pos) {
+      currentLat = pos.coords.latitude;
+      currentLng = pos.coords.longitude;
+      reverseGeocode(currentLat, currentLng);
+    }
+    function error(err) { alert('Erreur GPS : ' + err.message); }
+    async function reverseGeocode(lat, lng) {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+          { headers: { 'User-Agent': 'OuestPalettesProspects/1.0 (contact@ouestpalettes.com)' } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const addr = data.address || {};
+        document.getElementById('adresse').value = addr.road || '';
+        document.getElementById('cp').value = addr.postcode || '';
+        document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
+      } catch (e) {
+        alert('Adresse non trouvée. Saisissez-la manuellement.');
+      }
+    }
+
+    // ---------- CAMÉRA ----------
+    async function startCamera() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const photoBtn = document.getElementById('photoBtn');
+
+      if (video.classList.contains('active')) {
+        // Prendre la photo
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+
+        // Redimensionnement (pour économiser de la bande passante)
+        const maxW = 1280;
+        let outputCanvas = canvas;
+        if (canvas.width > maxW) {
+          const scale = maxW / canvas.width;
+          const temp = document.createElement('canvas');
+          temp.width = Math.round(canvas.width * scale);
+          temp.height = Math.round(canvas.height * scale);
+          temp.getContext('2d').drawImage(canvas, 0, 0, temp.width, temp.height);
+          outputCanvas = temp;
+        }
+        // Compression JPEG à 60%
+        const photoDataUrl = outputCanvas.toDataURL('image/jpeg', 0.6);
+        currentPhotos.push(photoDataUrl);
+        updatePhotosPreview();
+
+        // Arrêter la caméra après la capture
+        video.classList.remove('active');
+        canvas.classList.remove('active'); // Ne pas afficher le canvas de capture
+        photoBtn.textContent = '📷 Prendre une photo';
+
+        if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+        currentStream = null;
+      } else {
+        // Démarrer la caméra
+        try {
+          if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+          currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          video.srcObject = currentStream;
+          video.classList.add('active');
+          canvas.classList.remove('active');
+          photoBtn.textContent = '📸 Prendre';
+        } catch (err) {
+          alert('Erreur caméra : ' + err.message);
+          console.error('Erreur caméra:', err);
+        }
+      }
+    }
+    function updatePhotosPreview() {
+      const container = document.getElementById('photosPreview');
+      container.innerHTML = '';
+      currentPhotos.forEach((photo, i) => {
+        const div = document.createElement('div');
+        div.className = 'photo-item';
+        div.innerHTML = `<img src="${photo}" /><button onclick="removePhoto(${i})">×</button>`;
+        container.appendChild(div);
+      });
+    }
+    function removePhoto(index) {
+      currentPhotos.splice(index, 1);
+      updatePhotosPreview();
+    }
+
+    // ---------- SAUVEGARDE / ENVOI ----------
+    function saveProspect() {
+      const nom = document.getElementById('nom').value.trim();
+      if (!nom) { showToast('Le nom est obligatoire.', 'red'); return; }
+
+      const prospect = {
+        nom,
+        societe: document.getElementById('societe').value,
+        adresse: document.getElementById('adresse').value,
+        cp: document.getElementById('cp').value,
+        ville: document.getElementById('ville').value,
+        tel: document.getElementById('tel').value,
+        email: document.getElementById('emailProspect').value,
+        commentaire: document.getElementById('commentaire').value,
+        photos: currentPhotos,
+        lat: currentLat,
+        lng: currentLng,
+        userName: currentUser ? currentUser.email : 'inconnu',
+        timestamp: new Date().toLocaleString(),
+        // CORRECTION: Joindre les emails avec une virgule pour les envoyer comme une seule chaîne
+        destinatairesEmail: CONFIG.destinatairesEmail.join(',') 
+      };
+
+      sendByEmail(prospect);
+
+      const all = JSON.parse(localStorage.getItem('prospects') || '[]');
+      all.push(prospect);
+      localStorage.setItem('prospects', JSON.stringify(all));
+
+      resetForm();  // Réinitialise tout
+      loadProspects(); // Recharge la liste (limitée à 10)
+      showToast('✅ Prospect enregistré et en cours d\'envoi !');
+    }
+
+    function sendByEmail(prospect) {
+      if (!navigator.onLine) {
+        console.log('Hors ligne. Mise en file d\'attente.');
+        showToast('⚠️ Hors ligne. Sauvegardé en local.');
+        offlineQueue.push(prospect);
+        localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
+        return;
+      }
+
+      fetch(CONFIG.urlScript, {
+        method: 'POST',
+        body: JSON.stringify(prospect),
+        headers: { 'Content-Type': 'text/plain' }
+      })
+      .then(async (response) => {
+        let data = null;
+        try { data = await response.json(); } catch (_) {}
+        if (!response.ok || !data || data.status !== 'success') {
+          throw new Error(data?.message || `HTTP ${response.status}`);
+        }
+        showToast('✅ E-mail envoyé avec succès !');
+      })
+      .catch(err => {
+        console.error('Erreur réseau/serveur:', err);
+        showToast('⚠️ Erreur d\'envoi. Mise en file d\'attente...');
+        offlineQueue.push(prospect);
+        localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
+      });
+    }
+
+    function syncOfflineData() {
+      if (!navigator.onLine || offlineQueue.length === 0) return;
+      showToast(`Tentative d'envoi de ${offlineQueue.length} prospect(s) hors ligne...`);
+
+      // Copie et effacement immédiat de la file pour éviter les doublons
+      const queueToSend = [...offlineQueue];
+      offlineQueue = [];
+      localStorage.setItem('prospectQueue', '[]');
+
+      queueToSend.forEach(p => {
+        // Ré-envoie chaque prospect (sendByEmail gère la mise en file d'attente en cas de nouvelle erreur)
+        sendByEmail(p);
+      });
+      loadProspects();
+      showToast('✅ Synchronisation hors ligne lancée.');
+    }
+
+    function loadProspects() {
+      const list = document.getElementById('prospectsList');
+      const prospects = JSON.parse(localStorage.getItem('prospects') || '[]');
+      list.innerHTML = '';
+      // Tri du + récent au + ancien
+      prospects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      // Limite à 10
+      prospects.slice(0, 10).forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'border p-3 rounded-lg bg-gray-50';
+        // Remplacement de l'URL Google Maps cassée par une syntaxe correcte pour un lien cliquable
+        const mapsLink = p.lat && p.lng ? 
+          `<p class="text-xs"><a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="text-blue-500">📍 Voir sur Google Maps</a></p>` : '';
+
+        item.innerHTML = `
+          <p class="font-medium">${p.nom} - <span class="text-blue-600">${p.societe || ''}</span></p>
+          <p class="text-sm text-gray-600">${p.adresse || ''}, ${p.cp || ''} ${p.ville || ''}</p>
+          <p class="text-sm">${p.tel || ''} | ${p.email || ''}</p>
+          <p class="text-sm">${p.commentaire || ''}</p>
+          <p class="text-xs text-gray-500">Saisi par ${p.userName || ''} - ${p.timestamp || ''}</p>
+          ${mapsLink}
+          <div class="flex mt-2">${p.photos ? p.photos.map(img => `<img src="${img}" class="h-20 w-20 object-cover rounded mr-1" />`).join('') : ''}</div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function resetForm() {
+      // Vider tous les champs
+      document.getElementById('nom').value = '';
+      document.getElementById('societe').value = '';
+      document.getElementById('adresse').value = '';
+      document.getElementById('cp').value = '';
+      document.getElementById('ville').value = '';
+      document.getElementById('tel').value = '';
+      document.getElementById('emailProspect').value = '';
+      document.getElementById('commentaire').value = '';
+      // Réinitialiser état
+      currentPhotos = [];
+      currentLat = null;
+      currentLng = null;
+      updatePhotosPreview();
+      // Caméra
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      video.classList.remove('active');
+      canvas.classList.remove('active');
+      if (currentStream) {
+        currentStream.getTracks().forEach(t => t.stop());
+        currentStream = null;
+      }
+      document.getElementById('photoBtn').textContent = '📷 Prendre une photo';
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    // Initialisation au chargement de la page
+    window.onload = function() {
+        checkOnlineStatus();
     };
 
-    // ---------- ÉTAT ----------
-    let currentUser = null;
-    let currentStream = null;
-    let currentPhotos = [];
-    let currentLat = null;
-    let currentLng = null;
-    let offlineQueue = JSON.parse(localStorage.getItem('prospectQueue') || '[]');
-
-    // ---------- AUTH ----------
-    function login() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const user = CONFIG.utilisateurs.find(u => u.email === email && u.password === password);
-      if (user) {
-        currentUser = user;
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
-        loadProspects();
-        checkOnlineStatus();
-        showOfflineQueueCount();
-      } else {
-        document.getElementById('loginError').classList.remove('hidden');
-      }
-    }
-
-    function logout() {
-      currentUser = null;
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('app').classList.add('hidden');
-    }
-
-    // ---------- OFFLINE ----------
-    function checkOnlineStatus() {
-      const bar = document.getElementById('offlineBar');
-      window.addEventListener('online', () => { bar.classList.add('hidden'); syncOfflineData(); });
-      window.addEventListener('offline', () => { bar.classList.remove('hidden'); });
-      if (!navigator.onLine) bar.classList.remove('hidden');
-    }
-    function showOfflineQueueCount() {
-      if (offlineQueue.length > 0) showToast(`${offlineQueue.length} prospect(s) en attente`);
-    }
-
-    // ---------- GPS ----------
-    function getLocation() {
-      if (!navigator.geolocation) { alert('Géolocalisation non supportée'); return; }
-      navigator.geolocation.getCurrentPosition(success, error, { timeout: 15000 });
-    }
-    function success(pos) {
-      currentLat = pos.coords.latitude;
-      currentLng = pos.coords.longitude;
-      reverseGeocode(currentLat, currentLng);
-    }
-    function error(err) { alert('Erreur GPS : ' + err.message); }
-    async function reverseGeocode(lat, lng) {
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
-          { headers: { 'User-Agent': 'OuestPalettesProspects/1.0 (contact@ouestpalettes.com)' } }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const addr = data.address || {};
-        document.getElementById('adresse').value = addr.road || '';
-        document.getElementById('cp').value = addr.postcode || '';
-        document.getElementById('ville').value = addr.city || addr.town || addr.village || '';
-      } catch (e) {
-        alert('Adresse non trouvée. Saisissez-la manuellement.');
-      }
-    }
-
-    // ---------- CAMÉRA ----------
-    async function startCamera() {
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const photoBtn = document.getElementById('photoBtn');
-
-      if (video.classList.contains('active')) {
-        const ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-
-        const maxW = 1280;
-        let outputCanvas = canvas;
-        if (canvas.width > maxW) {
-          const scale = maxW / canvas.width;
-          const temp = document.createElement('canvas');
-          temp.width = Math.round(canvas.width * scale);
-          temp.height = Math.round(canvas.height * scale);
-          temp.getContext('2d').drawImage(canvas, 0, 0, temp.width, temp.height);
-          outputCanvas = temp;
-        }
-        const photoDataUrl = outputCanvas.toDataURL('image/jpeg', 0.6);
-        currentPhotos.push(photoDataUrl);
-        updatePhotosPreview();
-
-        video.classList.remove('active');
-        canvas.classList.add('active');
-        photoBtn.textContent = '📷 Prendre une photo';
-
-        if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-        currentStream = null;
-      } else {
-        try {
-          if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-          currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          video.srcObject = currentStream;
-          video.classList.add('active');
-          canvas.classList.remove('active');
-          photoBtn.textContent = '📸 Prendre';
-        } catch (err) {
-          alert('Erreur caméra : ' + err.message);
-          console.error('Erreur caméra:', err);
-        }
-      }
-    }
-    function updatePhotosPreview() {
-      const container = document.getElementById('photosPreview');
-      container.innerHTML = '';
-      currentPhotos.forEach((photo, i) => {
-        const div = document.createElement('div');
-        div.className = 'photo-item';
-        div.innerHTML = `<img src="${photo}" /><button onclick="removePhoto(${i})">×</button>`;
-        container.appendChild(div);
-      });
-    }
-    function removePhoto(index) {
-      currentPhotos.splice(index, 1);
-      updatePhotosPreview();
-    }
-
-    // ---------- SAUVEGARDE / ENVOI ----------
-    function saveProspect() {
-      const nom = document.getElementById('nom').value.trim();
-      if (!nom) { alert('Le nom est obligatoire.'); return; }
-
-      const prospect = {
-        nom,
-        societe: document.getElementById('societe').value,
-        adresse: document.getElementById('adresse').value,
-        cp: document.getElementById('cp').value,
-        ville: document.getElementById('ville').value,
-        tel: document.getElementById('tel').value,
-        email: document.getElementById('emailProspect').value,
-        commentaire: document.getElementById('commentaire').value,
-        photos: currentPhotos,
-        lat: currentLat,
-        lng: currentLng,
-        userName: currentUser ? currentUser.email : 'inconnu',
-        timestamp: new Date().toLocaleString(),
-        destinatairesEmail: CONFIG.destinatairesEmail  // Envoyé au script GAS
-      };
-
-      sendByEmail(prospect);
-
-      const all = JSON.parse(localStorage.getItem('prospects') || '[]');
-      all.push(prospect);
-      localStorage.setItem('prospects', JSON.stringify(all));
-
-      resetForm();  // Réinitialise tout
-      loadProspects(); // Recharge la liste (limitée à 10)
-      showToast('✅ Prospect envoyé !');
-    }
-
-    function sendByEmail(prospect) {
-      fetch(CONFIG.urlScript, {
-        method: 'POST',
-        body: JSON.stringify(prospect),
-        headers: { 'Content-Type': 'text/plain' }
-      })
-      .then(async (response) => {
-        let data = null;
-        try { data = await response.json(); } catch (_) {}
-        if (!response.ok || !data || data.status !== 'success') {
-          throw new Error(data?.message || `HTTP ${response.status}`);
-        }
-        showToast('✅ E-mail envoyé avec succès !');
-      })
-      .catch(err => {
-        console.error('Erreur réseau/serveur:', err);
-        showToast('⚠️ Erreur réseau. Sauvegardé hors ligne.');
-        offlineQueue.push(prospect);
-        localStorage.setItem('prospectQueue', JSON.stringify(offlineQueue));
-      });
-    }
-
-    function syncOfflineData() {
-      if (!navigator.onLine || offlineQueue.length === 0) return;
-      const queue = [...offlineQueue];
-      offlineQueue = [];
-      localStorage.setItem('prospectQueue', '[]');
-      queue.forEach(p => {
-        sendByEmail(p);
-        const all = JSON.parse(localStorage.getItem('prospects') || '[]');
-        all.push(p);
-        localStorage.setItem('prospects', JSON.stringify(all));
-      });
-      loadProspects();
-      showToast('✅ Données hors ligne envoyées');
-    }
-
-    function loadProspects() {
-      const list = document.getElementById('prospectsList');
-      const prospects = JSON.parse(localStorage.getItem('prospects') || '[]');
-      list.innerHTML = '';
-      // Tri du + récent au + ancien
-      prospects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      // Limite à 10
-      prospects.slice(0, 10).forEach(p => {
-        const item = document.createElement('div');
-        item.className = 'border p-3 rounded-lg bg-gray-50';
-        item.innerHTML = `
-          <p class="font-medium">${p.nom} - <span class="text-blue-600">${p.societe || ''}</span></p>
-          <p class="text-sm text-gray-600">${p.adresse || ''}, ${p.cp || ''} ${p.ville || ''}</p>
-          <p class="text-sm">${p.tel || ''} | ${p.email || ''}</p>
-          <p class="text-sm">${p.commentaire || ''}</p>
-          <p class="text-xs text-gray-500">Saisi par ${p.userName || ''} - ${p.timestamp || ''}</p>
-          ${p.lat && p.lng ? `<p class="text-xs"><a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="text-blue-500">📍 Voir sur Google Maps</a></p>` : ''}
-          <div class="flex mt-2">${p.photos ? p.photos.map(img => `<img src="${img}" class="h-20 w-20 object-cover rounded mr-1" />`).join('') : ''}</div>
-        `;
-        list.appendChild(item);
-      });
-    }
-
-    function resetForm() {
-      // Vider tous les champs
-      document.getElementById('nom').value = '';
-      document.getElementById('societe').value = '';
-      document.getElementById('adresse').value = '';
-      document.getElementById('cp').value = '';
-      document.getElementById('ville').value = '';
-      document.getElementById('tel').value = '';
-      document.getElementById('emailProspect').value = '';
-      document.getElementById('commentaire').value = '';
-      // Réinitialiser état
-      currentPhotos = [];
-      currentLat = null;
-      currentLng = null;
-      updatePhotosPreview();
-      // Caméra
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      video.classList.remove('active');
-      canvas.classList.remove('active');
-      if (currentStream) {
-        currentStream.getTracks().forEach(t => t.stop());
-        currentStream = null;
-      }
-      document.getElementById('photoBtn').textContent = '📷 Prendre une photo';
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3000);
-    }
-  </script>
+  </script>
 </body>
 </html>
